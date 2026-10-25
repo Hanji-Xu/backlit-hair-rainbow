@@ -4,7 +4,7 @@
 
 **Observation:** hold your forearm so it just hides the sun, and the fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse: it diffracts sunlight.
 
-**What it does:** the first page is just the picture and its tuning. Drag the sun to move it, drag anywhere else to turn the arm, pick a hair type and set the diameter. Every glint is computed from diffraction around a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour with the CIE 1931 observer. The second page (**How it works**) holds the explanation, a chart of colour against angle from the sun, the equations, the constants table and sources.
+**What it does:** the first page is just the picture and its tuning. Drag the sun to move it, drag anywhere else to turn the arm, pick a hair type and set the diameter. Behind the arm is a blue sky with drifting clouds. When a cloud crosses the sun, the direct beam drops (T = exp(−τ)) and the glints fade, because diffuse light through cloud is far too wide a source to make diffraction colours. Every glint is computed from diffraction around a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour with the CIE 1931 observer. The second page (**How it works**) holds the explanation, a chart of colour against angle from the sun, the equations, the constants table and sources.
 
 **Physics (documented in the page):**
 - Fraunhofer/Babinet strip diffraction, σ = (d²/λ)·sinc²(πd sinθ/λ), with dark fringes at sin θ = mλ/d.

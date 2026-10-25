@@ -135,6 +135,9 @@ linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevat
     <tr><td>TT lobe shift and width</td><td>α_TT = 1.5°, β_TT = 3.5°</td><td><span class="tag m">measured range</span></td><td>Marschner et al. 2003, Table 1: α_R from −10° to −5°, cuticle tilt ≈ 3°, β_R 5–10°, β_TT = β_R/2.</td></tr>
     <tr><td>Cuticle scale spacing Λ</td><td>6 µm (default)</td><td><span class="tag e">estimate</span></td><td>Cuticle cells are ≈ 50 µm long and overlap by up to 5/6 (Wolfram 2003), which leaves ≈ 8 µm exposed. Spacing jitter is set to 20%.</td></tr>
     <tr><td>Cuticle grating efficiency</td><td>0.15 per order</td><td><span class="tag e">unknown</span></td><td>Not measured for transmission, so the grating is left out of the picture.</td></tr>
+    <tr><td>Sky colour</td><td>S(λ)·λ⁻⁴</td><td><span class="tag d">approximation</span></td><td>Single Rayleigh scattering. Multiple scattering and aerosols would make it paler. The near-sun whitening is a display estimate.</td></tr>
+    <tr><td>Cloud optical depth</td><td>τ = 14·c²</td><td><span class="tag e">estimate</span></td><td>Gives τ ≈ 1–5 at thin edges (glints dim) and τ ≫ 10 in cores (glints vanish), matching typical cumulus values. Cloud shapes are procedural noise.</td></tr>
+    <tr><td>Cloud drift</td><td>0.22°/s</td><td><span class="tag e">estimate</span></td><td>10 m/s wind at 1.5 km cloud base, seen overhead.</td></tr>
     <tr><td>Hair length, density, curl</td><td>illustrative</td><td><span class="tag e">estimate</span></td><td>Chosen to look like a forearm. They change where glints fall, not the colour at a given angle.</td></tr>
   </table>
 
@@ -144,12 +147,18 @@ linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevat
     <li>Interference between the diffracted wave and the refracted wave. They are added as intensities. Wave-optics renderers (Xia et al. 2020) show that this adds speckle-like structure to backlit fibers.</li>
     <li>Polarization. Sunlight is unpolarized, and near-forward diffraction barely depends on polarization.</li>
     <li>Surface reflection (R) and the internal-reflection lobe (TRT), which mostly go backward, toward the sun.</li>
-    <li>The bright sky around the sun (aureole), glare in your eye, and the hair's own shadow. Hold up an arm, a book or a building to block the sun, as in this scene.</li>
+    <li>Radiometric brightness of the sky and clouds (they are drawn at a display level), glare in your eye, and the hair's own shadow. Hold up an arm, a book or a building to block the sun, as in this scene.</li>
     <li>The chord across the sun disk is separated into a radial and a transverse part. This is exact once a glint sweeps across the disk, and slightly approximate for a perfectly straight, still hair.</li>
   </ul>
 
   <h2>About the picture</h2>
-  <p>Three display choices, none of them physics. The camera exposes automatically for the brightest glints, which are tens to hundreds of times brighter per arc-minute than a sunlit white card, so the shaded background would really be close to black. Brightness is shown through a square-root tone curve so the dimmer, more colourful glints further from the sun stay visible next to the white ones, roughly as your eye manages it. The arm is drawn faintly so you can see where it is; at this exposure it would be black.</p>
+  <p>Some display choices, which are not physics. The camera exposes automatically for the brightest glints, which are tens to hundreds of times brighter per arc-minute than a sunlit white card. Brightness is shown through a square-root tone curve so that the dimmer, more colourful glints further from the sun stay visible next to the white ones, roughly as your eye manages it.</p>
+  <p>The sky and the arm are drawn at a brightness of their own. At an exposure that suits the glints, a clear blue sky (around a fifth of a white card) would be hundreds of times dimmer than a glint and would print as nearly black, and so would the arm, which is in its own shadow. A bright glint therefore covers the sky behind it, and dim strands let it show through.</p>
+
+  <h2>Clouds</h2>
+  <p>The sky's colour comes from the same sunlight scattered by air molecules: single Rayleigh scattering, S(λ)·λ⁻⁴, through the same colour pipeline as the glints. It is whitened slightly near the sun, where haze scatters light forward.</p>
+  <p>Clouds drift at about 0.22° per second, roughly a 10 m/s wind at 1.5 km. When one crosses the sun, the direct beam reaching the hairs drops to T = exp(−τ), and every glint dims by the same factor. Exposure is held at the clear-sun value, so you see the fade instead of the camera correcting it. Light scattered through the cloud does not bring the colours back. It arrives from a patch of sky many degrees wide, far wider than the 0.53° disk that already washes out fringes on thick hairs, so under cloud the hairs turn grey. That is why you only see the rainbow in direct sun.</p>
+  <div class="eq">T = exp(−τ),   τ = 14 · c²        c = cloud density 0…1 along the line to the sun's centre</div>
   <p>Fixed in the picture: sun 35° above the horizon (air mass 1.74), diameter spread 20% between hairs, ellipticity, length and count per hair type. The sun's height only changes the colour of the light slightly through Rayleigh reddening.</p>
 
   <h2>Sources</h2>
@@ -221,6 +230,8 @@ let SUN = null;          // current spectrum, Y-normalised
 let WX, WY, WZ;          // spectral weights S*cmf*dl
 let SUN_RGB;             // adapted rgb of the sun (Y=1)
 let BANDS = [];          // for the cuticle grating: {lam_um, rgb}
+let SKY_RGB = [0.1, 0.2, 0.5], SUN_WHITE = [1, 1, 1];
+const SKY_LUM = 0.13;     // display luminance of the clear sky (display choice, see the second page)
 function setSun(elev) {
   SUN = sunSpectrum(elev);
   WX = new Float64Array(NL); WY = new Float64Array(NL); WZ = new Float64Array(NL);
@@ -232,6 +243,12 @@ function setSun(elev) {
     for (let i = 0; i < NL; i++) if (LAMS[i] >= b0 && LAMS[i] < b0 + 40) { X += WX[i]; Y += WY[i]; Z += WZ[i]; const w = WY[i] + WX[i] + WZ[i]; lw += LAMS[i] * w; ws += w; }
     if (ws > 0) BANDS.push({ lam: lw / ws / 1000, rgb: adaptRGB(X, Y, Z) });
   }
+  // clear-sky colour: single Rayleigh scattering of this sunlight, S(lambda) * lambda^-4
+  const r = specXYZ(SUN, i => Math.pow(LAMS[i] / 550, -4)); const sk = adaptRGB(r[0], r[1], r[2]);
+  const ly = 0.2126 * sk[0] + 0.7152 * sk[1] + 0.0722 * sk[2];
+  SKY_RGB = fixGamut(sk).map(v => v / ly * SKY_LUM);
+  const sl = 0.2126 * SUN_RGB[0] + 0.7152 * SUN_RGB[1] + 0.0722 * SUN_RGB[2];
+  SUN_WHITE = SUN_RGB.map(v => v / sl);
   diffCache.clear(); ttCache = null;
 }
 function adaptRGB(X, Y, Z) { const r = xyz2rgb(X, Y, Z); return [r[0] * ADAPT[0], r[1] * ADAPT[1], r[2] * ADAPT[2]]; }
@@ -440,16 +457,75 @@ function resize() {
   const w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientWidth * dpr * 10 / 16);
   if (w === W && h === H) return;
   W = w; H = h; cv.width = W; cv.height = H;
-  buf = new Float32Array(W * H * 3); img = ctx.createImageData(W, H); armKey = '';
+  buf = new Float32Array(W * H * 3); hairCv.width = W; hairCv.height = H; img = hairCtx.createImageData(W, H); armKey = '';
 }
+const armCv = document.createElement('canvas'), armCtx = armCv.getContext('2d');
+const hairCv = document.createElement('canvas'), hairCtx = hairCv.getContext('2d');
+const skyCv = document.createElement('canvas'), skyCtx = skyCv.getContext('2d');
+const SKY_DS = 6;   // the sky is computed at 1/6 resolution and smoothed when drawn
+let skyImg = null;
 function computeArmMask() {
   const key = [W, H, state.fov, state.roll, state.yaw].join(',');
   if (key === armKey) return; armKey = key;
   armMask = new Uint8Array(W * H);
+  armCv.width = W; armCv.height = H;
+  const ai = armCtx.createImageData(W, H), d = ai.data;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const dx = (x + 0.5 - W / 2) / F, dy = -(y + 0.5 - H / 2) / F, l = Math.hypot(dx, dy, 1);
-    armMask[y * W + x] = hitArm(dx / l, dy / l, 1 / l) < Infinity ? 1 : 0;
+    const hit = hitArm(dx / l, dy / l, 1 / l) < Infinity;
+    armMask[y * W + x] = hit ? 1 : 0;
+    if (hit) { const q = 4 * (y * W + x); d[q] = 46; d[q + 1] = 36; d[q + 2] = 32; d[q + 3] = 255; }   // arm in its own shadow
   }
+  armCtx.putImageData(ai, 0, 0);
+}
+
+// ---------------------------------------------------------------- sky and drifting clouds
+function hash2(i, j) { let h = Math.imul(i, 374761393) + Math.imul(j, 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function vnoise(x, y) {
+  const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  const a = hash2(i, j), b = hash2(i + 1, j), c = hash2(i, j + 1), d = hash2(i + 1, j + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+const CLOUD_SCALE = 2.6;     // degrees per noise cell (illustrative)
+const WIND = 0.22;           // cloud drift, degrees per second (about 10 m/s at 1.5 km, overhead)
+// cloud density 0..1 at angular position (ax, ay) in degrees, time t in seconds
+function cloudDensity(ax, ay, t) {
+  let x = ax / CLOUD_SCALE + WIND * t / CLOUD_SCALE, y = ay / (CLOUD_SCALE * 0.6) + 0.013 * t;
+  let f = 0, amp = 0.5;
+  for (let o = 0; o < 4; o++) { f += amp * vnoise(x, y); x = x * 2.03 + 17.1; y = y * 2.01 + 5.3; amp *= 0.5; }
+  const d = (f - 0.5) / 0.22;
+  return d <= 0 ? 0 : d >= 1 ? 1 : d * d * (3 - 2 * d);
+}
+// direct-beam transmission through the cloud in front of the sun: T = exp(-tau), tau = 14 d^2 (estimate)
+function sunTransmission(s, t) {
+  const ax = Math.atan2(s[0], s[2]) / DEG, ay = Math.atan2(s[1], s[2]) / DEG;
+  const d = cloudDensity(ax, ay, t);
+  return Math.exp(-14 * d * d);
+}
+function drawSky(s, t) {
+  const sw = Math.ceil(W / SKY_DS), sh = Math.ceil(H / SKY_DS);
+  if (skyCv.width !== sw || skyCv.height !== sh) { skyCv.width = sw; skyCv.height = sh; skyImg = skyCtx.createImageData(sw, sh); }
+  const d = skyImg.data;
+  for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+    const dx = ((x + 0.5) * SKY_DS - W / 2) / F, dy = -((y + 0.5) * SKY_DS - H / 2) / F, l = Math.hypot(dx, dy, 1);
+    const th = Math.acos(Math.min(1, (dx * s[0] + dy * s[1] + s[2]) / l)) / DEG;
+    const w = 0.2 * Math.exp(-th / 3);                       // whitening near the sun (aureole), display estimate
+    let r = SKY_RGB[0] * (1 - w) + SUN_WHITE[0] * w * 0.55, g = SKY_RGB[1] * (1 - w) + SUN_WHITE[1] * w * 0.55, b = SKY_RGB[2] * (1 - w) + SUN_WHITE[2] * w * 0.55;
+    const cd = cloudDensity(Math.atan(dx) / DEG, Math.atan(dy) / DEG, t);
+    if (cd > 0) {
+      // clouds near the sun are lit from behind: bright thin edges, greyer thick cores
+      const core = cd < 0.45 ? 0 : (cd - 0.45) / 0.55;
+      const lum = (0.42 + 0.3 * w / 0.2) * (1 - 0.5 * core) + 1.2 * w * cd * (1 - cd);
+      const a = Math.min(1, cd / 0.35);
+      r += (lum * SUN_WHITE[0] - r) * a; g += (lum * SUN_WHITE[1] - g) * a; b += (lum * SUN_WHITE[2] * 1.03 - b) * a;
+    }
+    const q = 4 * (y * sw + x);
+    d[q] = enc(r); d[q + 1] = enc(g); d[q + 2] = enc(b); d[q + 3] = 255;
+  }
+  skyCtx.putImageData(skyImg, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(skyCv, 0, 0, W, H);
 }
 
 // ---------------------------------------------------------------- render
@@ -587,11 +663,13 @@ function render(time) {
       if (r !== 0 || g !== 0 || b !== 0) splat(SX[k], SY[k], SX[k + 1], SY[k + 1], r, g, b);
     }
   }
-  toneMap(s);
+  toneMap(s, time);
 }
 
-function toneMap(s) {
-  // auto exposure from the bright end of the hair pixels
+let curT = 1;
+function toneMap(s, time) {
+  // auto exposure from the bright end of the hair pixels, as if the sun were clear,
+  // so that a passing cloud dims the glints instead of being exposed away
   if (state.auto) {
     const hist = new Uint32Array(200); let cnt = 0;
     for (let p = 0, n = W * H; p < n; p += 3) {
@@ -607,64 +685,68 @@ function toneMap(s) {
     }
     curEV = state.breeze ? curEV + (target - curEV) * 0.15 : target;
   }
-  const ev = Math.pow(2, (state.auto ? curEV : -7) + state.ev);
-  const bgc = [0.85 * state.bg, 0.95 * state.bg, 1.15 * state.bg];
-  const sk = [0.55 * state.bg, 0.36 * state.bg, 0.3 * state.bg];
+  curT = sunTransmission(s, time);
+  const ev = Math.pow(2, (state.auto ? curEV : -7) + state.ev) * curT;
+  const data32 = new Uint32Array(img.data.buffer);
+  data32.fill(0);                          // transparent where no hair glows
   const data = img.data;
-  const pix = (r, g, b, isArm, out) => {
+  for (let p = 0, n = W * H; p < n; p++) {
+    const q = 3 * p;
+    if (buf[q] === 0 && buf[q + 1] === 0 && buf[q + 2] === 0) continue;
+    let r = buf[q] * ev, g = buf[q + 1] * ev, b = buf[q + 2] * ev;
     const mn = Math.min(r, g, b);
     if (mn < 0) {   // out of sRGB gamut: desaturate toward equal luminance
       const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      if (Y <= 0) { r = g = b = 0; } else { const k = Y / (Y - mn); r = Y + (r - Y) * k; g = Y + (g - Y) * k; b = Y + (b - Y) * k; }
+      if (Y <= 0) continue; const k = Y / (Y - mn); r = Y + (r - Y) * k; g = Y + (g - Y) * k; b = Y + (b - Y) * k;
     }
     if (state.compress) {   // display tone curve: luminance^0.5, hue kept
       const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
       if (Y > 0) { const k = Math.pow(Y, 0.5) / Y; r *= k; g *= k; b *= k; }
     }
-    if (state.outline && isArm) { r += 0.035; g += 0.026; b += 0.021; }   // display aid, not physical
-    out[0] = enc(1 - Math.exp(-r)); out[1] = enc(1 - Math.exp(-g)); out[2] = enc(1 - Math.exp(-b));
-  };
-  const cBg = [0, 0, 0], cArm = [0, 0, 0], c = [0, 0, 0];
-  pix(bgc[0] * ev, bgc[1] * ev, bgc[2] * ev, false, cBg);
-  pix(sk[0] * ev, sk[1] * ev, sk[2] * ev, true, cArm);
-  for (let p = 0, n = W * H; p < n; p++) {
-    const q = 3 * p, isArm = armMask[p] === 1;
-    let o = isArm ? cArm : cBg;
-    if (buf[q] !== 0 || buf[q + 1] !== 0 || buf[q + 2] !== 0) {
-      const base = isArm ? sk : bgc;
-      pix((buf[q] + base[0]) * ev, (buf[q + 1] + base[1]) * ev, (buf[q + 2] + base[2]) * ev, isArm, c); o = c;
-    }
-    data[4 * p] = o[0]; data[4 * p + 1] = o[1]; data[4 * p + 2] = o[2]; data[4 * p + 3] = 255;
+    r = 1 - Math.exp(-r); g = 1 - Math.exp(-g); b = 1 - Math.exp(-b);
+    // glints are hundreds of times brighter than the sky behind them, so a bright glint
+    // hides the sky; dim strands let it show through (alpha follows brightness)
+    const a = Math.min(1, 1.25 * Math.max(r, g, b)); if (a <= 0) continue;
+    data[4 * p] = enc(Math.min(1, r / a)); data[4 * p + 1] = enc(Math.min(1, g / a)); data[4 * p + 2] = enc(Math.min(1, b / a)); data[4 * p + 3] = Math.round(255 * a);
   }
-  ctx.putImageData(img, 0, 0);
+  hairCtx.putImageData(img, 0, 0);
+  // sky, then the arm in front of it, then the glowing hairs on top
+  drawSky(s, time);
+  drawSun(s);
+  ctx.drawImage(armCv, 0, 0);
+  ctx.drawImage(hairCv, 0, 0);
   drawOverlay(s);
 }
 const ENC = new Uint8Array(4097);
 for (let i = 0; i <= 4096; i++) { const x = i / 4096; ENC[i] = Math.round(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)); }
 function enc(x) { return ENC[Math.max(0, Math.min(4096, (x * 4096) | 0))]; }
 
+function sunScreen(s) { return [W / 2 + F * s[0] / s[2], H / 2 - F * s[1] / s[2]]; }
+function drawSun(s) {
+  if (hitArm(s[0], s[1], s[2]) < Infinity) return;
+  const [sxp, syp] = sunScreen(s), rpx = F * Math.tan(R_SUN), a = Math.sqrt(curT);
+  const g = ctx.createRadialGradient(sxp, syp, 0, sxp, syp, rpx * 14);
+  g.addColorStop(0, `rgba(255,255,255,${0.35 + 0.65 * a})`); g.addColorStop(0.07, `rgba(255,255,250,${0.3 + 0.7 * a})`);
+  g.addColorStop(0.2, `rgba(255,250,235,${0.45 * a})`); g.addColorStop(1, 'rgba(255,250,235,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sxp, syp, rpx * 14, 0, 7); ctx.fill();
+}
 function drawOverlay(s) {
-  const sxp = W / 2 + F * s[0] / s[2], syp = H / 2 - F * s[1] / s[2];
+  const [sxp, syp] = sunScreen(s);
   const hidden = hitArm(s[0], s[1], s[2]) < Infinity;
   const rpx = F * Math.tan(R_SUN);
   const dpr = W / cv.clientWidth;
-  if (!hidden) {
-    const g = ctx.createRadialGradient(sxp, syp, 0, sxp, syp, rpx * 14);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.07, 'rgba(255,255,250,1)');
-    g.addColorStop(0.2, 'rgba(255,250,235,0.45)'); g.addColorStop(1, 'rgba(255,250,235,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sxp, syp, rpx * 14, 0, 7); ctx.fill();
-  } else {
+  if (hidden) {
     ctx.strokeStyle = 'rgba(242,196,109,0.85)'; ctx.setLineDash([3 * dpr, 3 * dpr]); ctx.lineWidth = dpr;
     ctx.beginPath(); ctx.arc(sxp, syp, rpx, 0, 7); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(242,196,109,0.9)'; ctx.font = `${11 * dpr}px ui-monospace, Menlo, monospace`;
-    ctx.fillText('sun (behind arm)', sxp + rpx + 4 * dpr, syp + 4 * dpr);
+    ctx.fillText(curT < 0.5 ? 'sun (behind arm and cloud)' : 'sun (behind arm)', sxp + rpx + 4 * dpr, syp + 4 * dpr);
   }
   if (state.rings) {
     ctx.lineWidth = dpr; ctx.font = `${10 * dpr}px ui-monospace, Menlo, monospace`;
     for (const a of [1, 2, 4, 8, 16]) {
       const rr = F * Math.tan(a * DEG);
-      ctx.strokeStyle = 'rgba(255,255,255,0.13)'; ctx.beginPath(); ctx.arc(sxp, syp, rr, 0, 7); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillText(a + '°', sxp + rr * 0.707 + 2 * dpr, syp - rr * 0.707 - 2 * dpr);
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(sxp, syp, rr, 0, 7); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillText(a + '°', sxp + rr * 0.707 + 2 * dpr, syp - rr * 0.707 - 2 * dpr);
     }
   }
 }
@@ -840,7 +922,8 @@ document.querySelectorAll('a[data-page]').forEach(a => a.addEventListener('click
 }));
 window.addEventListener('popstate', route);
 function frame(ts) {
-  if (page === 'play' && (need || state.breeze)) { render(ts / 1000); need = false; }
+  if (page === 'play') {   // always animated: clouds drift
+    render(ts / 1000); need = false; }
   if (page === 'physics' && chartNeed) { drawChart(); chartNeed = false; }
   requestAnimationFrame(frame);
 }
