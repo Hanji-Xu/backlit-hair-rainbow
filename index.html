@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backlit Hair Rainbow</title>
+<style>
+  :root {
+    --bg: #0d0f12; --panel: #15181d; --line: #262b33; --ink: #e8e6e1; --dim: #9aa0a8;
+    --accent: #f2c46d; --warn: #f08a5d; --ok: #8fd19e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  header { padding: 22px 20px 6px; max-width: 1280px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; font-weight: 650; letter-spacing: .2px; }
+  h1 span { color: var(--accent); }
+  header p { margin: 4px 0; color: var(--dim); max-width: 860px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px;
+    max-width: 1280px; margin: 0 auto; padding: 10px 20px; }
+  .stage { align-self: start; position: relative; background: #000; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  #scene { display: block; width: 100%; aspect-ratio: 16 / 10; cursor: crosshair; touch-action: none; }
+  .hud { position: absolute; left: 10px; bottom: 8px; font: 12px/1.4 ui-monospace, Menlo, monospace;
+    color: #cfd3d8; background: rgba(0,0,0,.55); padding: 6px 8px; border-radius: 6px; pointer-events: none; }
+  .hud .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-left: 4px; border: 1px solid #444; }
+  .busy { position: absolute; right: 10px; top: 8px; font-size: 12px; color: var(--accent); background: rgba(0,0,0,.6);
+    padding: 4px 8px; border-radius: 6px; display: none; }
+  aside { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-self: start; }
+  aside h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin: 14px 0 6px; font-weight: 600; }
+  aside h3:first-child { margin-top: 2px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .presets button { background: #1f242b; color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 8px; font-size: 12.5px; cursor: pointer; }
+  .presets button.on { border-color: var(--accent); color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; margin: 6px 0; font-size: 13px; }
+  .row label { color: #cdd1d6; }
+  .row output { font: 12px ui-monospace, Menlo, monospace; color: var(--accent); }
+  .row input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 4px 0; color: #cdd1d6; }
+  .chk small { color: var(--warn); }
+  .note { font-size: 12px; color: var(--dim); margin: 4px 0; }
+  section.chart, section.doc { max-width: 1280px; margin: 0 auto; padding: 6px 20px; }
+  .chartbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  #chart { width: 100%; height: 230px; display: block; }
+  .doc { color: #d7d9dc; }
+  .doc h2 { font-size: 19px; margin: 26px 0 8px; color: var(--ink); }
+  .doc h3 { font-size: 15px; margin: 18px 0 6px; color: var(--accent); }
+  .doc p, .doc li { max-width: 900px; }
+  .eq { font: 14px/1.6 ui-monospace, Menlo, Consolas, monospace; background: #111418; border: 1px solid var(--line);
+    border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 6px; margin: 8px 0; overflow-x: auto; white-space: pre; max-width: 900px; }
+  table { border-collapse: collapse; font-size: 13px; max-width: 1000px; width: 100%; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  .tag { font-size: 11px; padding: 1px 6px; border-radius: 10px; white-space: nowrap; }
+  .tag.m { background: #1d3325; color: var(--ok); }
+  .tag.e { background: #3a2318; color: var(--warn); }
+  .tag.d { background: #222a3a; color: #9db8f0; }
+  footer { max-width: 1280px; margin: 20px auto 40px; padding: 0 20px; color: var(--dim); font-size: 12px; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; padding: 10px 12px; }
+    header, section.chart, section.doc, footer { padding-left: 12px; padding-right: 12px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>02 <span>Backlit Hair Rainbow</span></h1>
+  <p>Hold your forearm so it just hides the sun. The fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse. It <b>diffracts</b> sunlight, and the colours appear at angles set by the ratio of wavelength to hair thickness.</p>
+  <p>Drag on the picture to move the sun. Every glint you see is computed from the diffraction of a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour through the CIE 1931 observer.</p>
+</header>
+
+<main class="layout">
+  <section class="stage">
+    <canvas id="scene"></canvas>
+    <div class="hud" id="hud">…</div>
+    <div class="busy" id="busy">computing spectra…</div>
+  </section>
+
+  <aside>
+    <h3>Hair type</h3>
+    <div class="presets" id="presets"></div>
+
+    <h3>Fiber</h3>
+    <div class="row"><label for="d">Hair diameter</label><output id="d_o"></output><input id="d" type="range" min="0" max="1000" step="1"></div>
+    <div class="row"><label for="cv">Diameter spread between hairs</label><output id="cv_o"></output><input id="cv" type="range" min="0" max="40" step="1"></div>
+    <div class="row"><label for="ecc">Cross-section ellipticity</label><output id="ecc_o"></output><input id="ecc" type="range" min="1" max="1.6" step="0.01"></div>
+    <div class="row"><label for="mel">Melanin (eumelanin)</label><output id="mel_o"></output><input id="mel" type="range" min="0" max="100" step="1"></div>
+    <div class="row"><label for="len">Hair length</label><output id="len_o"></output><input id="len" type="range" min="1" max="20" step="0.5"></div>
+    <div class="row"><label for="n">Number of hairs</label><output id="n_o"></output><input id="n" type="range" min="50" max="1500" step="10"></div>
+
+    <h3>Sun and view</h3>
+    <div class="row"><label for="sx">Sun, left/right of view centre</label><output id="sx_o"></output><input id="sx" type="range" min="-8" max="8" step="0.05"></div>
+    <div class="row"><label for="sy">Sun, up/down of view centre</label><output id="sy_o"></output><input id="sy" type="range" min="-5" max="5" step="0.05"></div>
+    <div class="row"><label for="elev">Sun height above horizon</label><output id="elev_o"></output><input id="elev" type="range" min="2" max="90" step="1"></div>
+    <div class="row"><label for="roll">Arm angle in view</label><output id="roll_o"></output><input id="roll" type="range" min="-45" max="45" step="1"></div>
+    <div class="row"><label for="yaw">Arm turned toward you</label><output id="yaw_o"></output><input id="yaw" type="range" min="-55" max="55" step="1"></div>
+    <div class="row"><label for="fov">Field of view</label><output id="fov_o"></output><input id="fov" type="range" min="4" max="30" step="0.5"></div>
+
+    <h3>What to include</h3>
+    <label class="chk"><input type="checkbox" id="m_diff" checked> Diffraction around the hair</label>
+    <label class="chk"><input type="checkbox" id="m_tt" checked> Light refracted through the hair</label>
+    <label class="chk"><input type="checkbox" id="m_cut"> Cuticle-scale grating <small>(strength estimated)</small></label>
+    <div class="row"><label for="per">Cuticle scale spacing</label><output id="per_o"></output><input id="per" type="range" min="3" max="12" step="0.1"></div>
+    <div class="row"><label for="eta">Grating efficiency per order</label><output id="eta_o"></output><input id="eta" type="range" min="0" max="0.4" step="0.01"></div>
+
+    <h3>Display</h3>
+    <label class="chk"><input type="checkbox" id="breeze" checked> Light breeze (hairs sway)</label>
+    <label class="chk"><input type="checkbox" id="rings" checked> Angle rings around the sun</label>
+    <label class="chk"><input type="checkbox" id="outline" checked> Show the arm faintly <small>(display aid)</small></label>
+    <label class="chk"><input type="checkbox" id="compress" checked> Eye-like tone curve <small>(display)</small></label>
+    <label class="chk"><input type="checkbox" id="auto" checked> Auto exposure</label>
+    <div class="row"><label for="ev">Exposure offset</label><output id="ev_o"></output><input id="ev" type="range" min="-6" max="6" step="0.25"></div>
+    <div class="row"><label for="bg">Background brightness</label><output id="bg_o"></output><input id="bg" type="range" min="0" max="100" step="1"></div>
+    <p class="note">The faint arm is a display aid: at an exposure that suits the glints, the shaded arm would really be black. The eye-like tone curve takes the square root of brightness so that dimmer, more colourful glints further from the sun stay visible next to the white ones near it, much as your eye does. Turn it off to see linear camera exposure. Exposure is a camera choice. Real glints are far brighter than the shaded background (tens to hundreds of times a sunlit white card, per arc-minute of hair), so at a correct exposure for the hairs the background is close to black.</p>
+  </aside>
+</main>
+
+<section class="chart">
+  <div class="chartbox">
+    <canvas id="chart"></canvas>
+    <p class="note" id="chartnote"></p>
+  </div>
+</section>
+
+<section class="doc">
+  <h2>What is actually happening</h2>
+  <p><b>1. Each hair diffracts.</b> A hair is an obstacle a few tens of micrometres wide. By Babinet's principle, the light it scatters into small forward angles is the same as the light that would pass through a slit of the same width. That pattern is a sinc² with dark fringes at <code>sin θ = mλ/d</code>. Blue light reaches its first dark fringe at a smaller angle than red light. So at a given angle from the sun, some wavelengths are dark and the rest are bright, and the hair shows the leftover colour.</p>
+  <p><b>2. Only the parts of a hair lying across the sun's direction glow.</b> A long cylinder conserves the component of light's momentum along its axis. Scattered light therefore leaves on a cone around the hair (the same geometry that makes spider-web glints line up in rings). You see a point of hair light up only if the direction to your eye lies on that cone. Near the sun, that means the hair must lie roughly perpendicular to the line joining it to the sun. On a curved hair, this is true over a short stretch, so you see short sparks that slide along the hair as it moves.</p>
+  <p><b>3. The sun's disk sets which hairs show colour.</b> The sun is 0.53° wide, not a point. Every point on the disk makes its own fringe pattern, offset by up to 0.53°, and they add up. Fringes narrower than the disk wash out. The fringe spacing is λ/d, so this happens when the hair is thicker than roughly λ/(0.53°) ≈ 60 µm. That is why the colours are vivid on fine body hair (vellus, roughly 10–30 µm) and weak on thick scalp hair (70–120 µm), whose colours are crowded within a degree or two of the sun.</p>
+  <p><b>4. The light refracted through the hair is not the rainbow.</b> Light passing through the keratin (n ≈ 1.55) is bent into a broad forward lobe spanning 0–100°. It gives blond hair its golden rim glow. Keratin's dispersion is tiny, so this lobe is tinted by melanin absorption, not split into a spectrum.</p>
+  <p><b>5. The cuticle scales could act as a grating, but its strength is unknown.</b> Scale edges every 5–8 µm form a rough grating along the hair. That would throw spectra about λ/Λ ≈ 5° along the hair's cone. No measurement of its transmission efficiency exists, and the scales are irregular, so it is off by default and labelled as an estimate when on.</p>
+
+  <h2>Equations used</h2>
+  <h3>Fiber diffraction (Fraunhofer, Babinet strip of width d)</h3>
+  <div class="eq">σ_θ(θ, λ) = (d² / λ) · sinc²(π d sin θ / λ)        [m per radian of deflection, per metre of hair]
+∫ σ_θ dθ = d   (a hair removes d of light by diffraction, plus d by blocking: extinction 2d)
+dark fringes:  sin θ_m = m λ / d</div>
+  <p>At oblique incidence the transverse wavenumber becomes k·sin ψ and the deflection inside the cone becomes φ, but θ ≈ φ·sin ψ. So in terms of the angle you actually measure from the sun, the fringe positions do not depend on how the hair is tilted.</p>
+
+  <h3>Cone condition and the sun's disk</h3>
+  <div class="eq">s = unit vector to the sun,  v = unit view ray to the hair point,  t = hair tangent
+glint condition:  g = (s − v)·t = 0           (scattered light stays on the cone a·t = b·t)
+tolerance from disk radius R:  |g| &lt; G = R · sin ψ,   sin ψ = |t × s|
+line radiance:  L_line / E = σ̄_θ(θ) · ⟨f(g/G)⟩ / (G · r)
+f(h) = (2/π)·√(1 − h²)     (sun disk profile across the chord, integrates to 1)
+σ̄_θ = σ_θ ⊛ K_R            (K_R = limb-darkened disk projected on the radial axis)</div>
+  <p>⟨f⟩ is averaged analytically over each hair segment, so short glints are not missed between sample points. r is the eye-to-hair distance, and E is the solar irradiance.</p>
+
+  <h3>Refracted lobe (TT), after Marschner et al. 2003 and pbrt-v3</h3>
+  <div class="eq">sin γ_i = h,   sin γ_t = h / η,   azimuthal deflection Δ = 2(γ_i − γ_t)
+A(h) = (1 − F(γ_i))² · exp(−σ_a · 2cos γ_t)
+N(Δ) = ½ Σ A(h) |dΔ/dh|⁻¹        M(θ_h) = Gauss(θ_h − α_TT, β_TT)
+L_line / E = d · M · N / cos²θ_d · cos θ_i / r</div>
+
+  <h3>Sunlight and colour</h3>
+  <div class="eq">S(λ) = B_λ(5772 K) · exp(−τ_R(λ) · m)
+τ_R(λ) = 0.008569 λ⁻⁴ (1 + 0.0113 λ⁻² + 0.00013 λ⁻⁴)     λ in µm (sea level)
+m = 1 / (cos z + 0.50572 (96.07995° − z)^−1.6364)          z = solar zenith angle
+X, Y, Z = Σ S(λ) σ̄(λ) x̄ ȳ z̄(λ) Δλ,  Δλ = 5 nm, 380–780 nm
+linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevation (eye adapted to daylight)</div>
+
+  <h2>Constants and how sure they are</h2>
+  <table>
+    <tr><th>Quantity</th><th>Value</th><th>Status</th><th>Source / reasoning</th></tr>
+    <tr><td>Sun angular radius R</td><td>0.2666°</td><td><span class="tag m">measured</span></td><td>Mean apparent solar radius 959.6″.</td></tr>
+    <tr><td>Sun spectrum</td><td>Planck 5772 K</td><td><span class="tag d">approximation</span></td><td>Effective temperature (IAU 2015). Ignores Fraunhofer lines and the UV/blue deficit of the real spectrum, which changes hues slightly.</td></tr>
+    <tr><td>Atmosphere</td><td>Rayleigh only</td><td><span class="tag d">approximation</span></td><td>Hansen &amp; Travis 1974; Kasten &amp; Young 1989 air mass. Aerosols and ozone ignored, so low sun is less red than reality on a hazy day.</td></tr>
+    <tr><td>Limb darkening</td><td>I(μ) = 1 − 0.6(1 − μ)</td><td><span class="tag e">estimate</span></td><td>Linear law, visible-band average coefficient; wavelength dependence ignored. Small effect on fringe contrast.</td></tr>
+    <tr><td>Colour matching</td><td>CIE 1931 2°</td><td><span class="tag m">standard</span></td><td>Analytic multi-lobe fit of Wyman, Sloan &amp; Shirley 2013 (error about 1% of peak).</td></tr>
+    <tr><td>Vellus hair diameter</td><td>≈ 10–30 µm</td><td><span class="tag m">measured</span></td><td>Clinical convention: vellus ≤ 30 µm. Scalp terminal hair 60–120 µm by ancestry.</td></tr>
+    <tr><td>Diameter spread</td><td>20% (default)</td><td><span class="tag e">estimate</span></td><td>Lognormal spread between hairs.</td></tr>
+    <tr><td>Tip taper</td><td>last 25% narrows to 40%</td><td><span class="tag e">estimate</span></td><td>Vellus hairs taper to a point. The narrower tip spreads the fringes wider, so colour changes toward the tip.</td></tr>
+    <tr><td>Ellipticity</td><td>1.1 (major/minor)</td><td><span class="tag m">measured range</span></td><td>Marschner et al. 2003 report a minor/major ratio of 0.85–1 typical, 0.7–0.8 in samples. The projected width changes as the hair twists.</td></tr>
+    <tr><td>Twist rate</td><td>up to ±0.3 rad/mm</td><td><span class="tag e">estimate</span></td><td>No data for body hair.</td></tr>
+    <tr><td>Keratin refractive index η</td><td>1.55</td><td><span class="tag m">measured</span></td><td>Marschner et al. 2003. Dispersion (Δn ≈ 0.01 across visible) ignored.</td></tr>
+    <tr><td>Melanin absorption σ_a</td><td>C_eu·(0.419, 0.697, 1.37) + C_ph·(0.187, 0.4, 1.05)</td><td><span class="tag d">fitted model</span></td><td>pbrt-v3 hair (Chiang et al. 2016), per unit radius. Here it is scaled by radius/40 µm, which assumes the fit is for a typical 80 µm scalp hair <span class="tag e">estimate</span>.</td></tr>
+    <tr><td>TT lobe shift and width</td><td>α_TT = 1.5°, β_TT = 3.5°</td><td><span class="tag m">measured range</span></td><td>Marschner et al. 2003, Table 1: α_R from −10° to −5°, cuticle tilt ≈ 3°, β_R 5–10°, β_TT = β_R/2.</td></tr>
+    <tr><td>Cuticle scale spacing Λ</td><td>6 µm (default)</td><td><span class="tag e">estimate</span></td><td>Cuticle cells are ≈ 50 µm long and overlap by up to 5/6 (Wolfram 2003), which leaves ≈ 8 µm exposed. Spacing jitter is set to 20%.</td></tr>
+    <tr><td>Cuticle grating efficiency</td><td>0.15 per order</td><td><span class="tag e">unknown</span></td><td>Not measured for transmission. This is a free parameter for exploring the effect, so it is off by default.</td></tr>
+    <tr><td>Hair length, density, curl</td><td>illustrative</td><td><span class="tag e">estimate</span></td><td>Chosen to look like a forearm. They change where glints fall, not the colour at a given angle.</td></tr>
+  </table>
+
+  <h2>What this model leaves out</h2>
+  <ul>
+    <li>The exact Lorenz–Mie solution for a cylinder. Fraunhofer theory is accurate when d ≫ λ and θ is small. For spider silk (≈ 3 µm), treat the colours as indicative.</li>
+    <li>Interference between the diffracted wave and the refracted wave. They are added as intensities. Wave-optics renderers (Xia et al. 2020) show that this adds speckle-like structure to backlit fibers.</li>
+    <li>Polarization. Sunlight is unpolarized, and near-forward diffraction barely depends on polarization.</li>
+    <li>Surface reflection (R) and the internal-reflection lobe (TRT), which mostly go backward, toward the sun.</li>
+    <li>The bright sky around the sun (aureole), glare in your eye, and the hair's own shadow. Hold up an arm, a book or a building to block the sun, as in this scene.</li>
+    <li>The chord across the sun disk is separated into a radial and a transverse part. This is exact once a glint sweeps across the disk, and slightly approximate for a perfectly straight, still hair.</li>
+  </ul>
+
+  <h2>Sources</h2>
+  <ul>
+    <li>Marschner, Jensen, Cammarano, Worley, Hanrahan. <i>Light Scattering from Human Hair Fibers.</i> SIGGRAPH 2003.</li>
+    <li>Xia, Walter, Michielssen, Bindel, Marschner. <i>A Wave Optics Based Fiber Scattering Model.</i> SIGGRAPH Asia 2020. (Strong, colourful forward scattering of backlit fibers that ray models miss.)</li>
+    <li>Xia, Walter, Hery, Maury, Michielssen, Marschner. <i>A Practical Wave Optics Reflection Model for Hair and Fur.</i> SIGGRAPH 2023. (Cuticle scales and colourful glints.)</li>
+    <li>Chiang, Bitterli, Tappan, Burley. <i>A Practical and Controllable Hair and Fur Model.</i> 2016; Pharr, Jakob, Humphreys, <i>pbrt-v3</i>.</li>
+    <li>van de Hulst. <i>Light Scattering by Small Particles</i>, 1957; Bohren &amp; Huffman, 1983 (cylinder scattering, Babinet).</li>
+    <li>Wyman, Sloan, Shirley. <i>Simple Analytic Approximations to the CIE XYZ Color Matching Functions.</i> JCGT 2013.</li>
+    <li>Hansen &amp; Travis 1974 (Rayleigh optical depth); Kasten &amp; Young 1989 (air mass).</li>
+    <li>Wolfram. <i>Human hair: a unique physicochemical composite.</i> J Am Acad Dermatol 2003 (cuticle cell size).</li>
+    <li>Lynch &amp; Livingston. <i>Color and Light in Nature</i> (diffraction colours of threads and webs).</li>
+  </ul>
+</section>
+<footer>Art Insights · 02 · Single self-contained file, no network access. All colours are computed, not painted.</footer>
+
+<script>
+'use strict';
+// ---------------------------------------------------------------- constants
+const DEG = Math.PI / 180;
+const R_SUN = 0.26656 * DEG;          // mean solar angular radius (measured)
+const LIMB_U = 0.6;                   // linear limb darkening coefficient (estimate)
+const T_SUN = 5772;                   // K, solar effective temperature
+const ETA = 1.55;                     // keratin refractive index (Marschner 2003)
+const R_REF_UM = 40;                  // radius the pbrt sigma_a fit is assumed to describe (estimate)
+const ALPHA_TT = 1.5 * DEG;           // TT longitudinal shift (Marschner Table 1)
+const BETA_TT = 3.5 * DEG;            // TT longitudinal width
+const EU_SIG = [0.419, 0.697, 1.37];  // pbrt-v3 eumelanin sigma_a per unit concentration
+const PH_SIG = [0.187, 0.4, 1.05];    // pbrt-v3 pheomelanin
+const CUT_JITTER = 0.2;               // cuticle spacing jitter (estimate)
+const ARM_R = 0.032, ARM_Z = 0.33;    // forearm radius and distance from eye, m (illustrative)
+const NSEG = 40;                      // segments per hair
+
+// ---------------------------------------------------------------- spectral
+const LAMS = []; for (let l = 380; l <= 780; l += 5) LAMS.push(l);
+const NL = LAMS.length, DL = 5;
+function lobe(x, mu, s1, s2) { const t = (x - mu) / (x < mu ? s1 : s2); return Math.exp(-0.5 * t * t); }
+function cmf(l) {
+  return [
+    1.056 * lobe(l, 599.8, 37.9, 31.0) + 0.362 * lobe(l, 442.0, 16.0, 26.7) - 0.065 * lobe(l, 501.1, 20.4, 26.2),
+    0.821 * lobe(l, 568.8, 46.9, 40.5) + 0.286 * lobe(l, 530.9, 16.3, 31.1),
+    1.217 * lobe(l, 437.0, 11.8, 36.0) + 0.681 * lobe(l, 459.0, 26.0, 13.8)];
+}
+const CMF = LAMS.map(cmf);
+function planck(lnm, T) { const l = lnm * 1e-9; return 1 / (Math.pow(l, 5) * (Math.exp(1.4388e-2 / (l * T)) - 1)); }
+function tauR(lnm) { const l = lnm / 1000, l2 = l * l, l4 = l2 * l2; return 0.008569 / l4 * (1 + 0.0113 / l2 + 0.00013 / l4); }
+function airMass(elev) { const z = 90 - elev; return 1 / (Math.cos(z * DEG) + 0.50572 * Math.pow(96.07995 - z, -1.6364)); }
+function sunSpectrum(elev) {
+  const m = airMass(elev);
+  const S = LAMS.map(l => planck(l, T_SUN) * Math.exp(-tauR(l) * m));
+  let Y = 0; for (let i = 0; i < NL; i++) Y += S[i] * CMF[i][1] * DL;
+  return S.map(v => v / Y);                // normalised so the sun has Y = 1
+}
+function xyz2rgb(X, Y, Z) {
+  return [3.2406 * X - 1.5372 * Y - 0.4986 * Z, -0.9689 * X + 1.8758 * Y + 0.0415 * Z, 0.0557 * X - 0.2040 * Y + 1.0570 * Z];
+}
+function specXYZ(S, weightFn) {
+  let X = 0, Y = 0, Z = 0;
+  for (let i = 0; i < NL; i++) { const w = S[i] * weightFn(i) * DL; X += w * CMF[i][0]; Y += w * CMF[i][1]; Z += w * CMF[i][2]; }
+  return [X, Y, Z];
+}
+const REF_RGB = (() => { const S = sunSpectrum(60); const c = specXYZ(S, () => 1); return xyz2rgb(c[0], c[1], c[2]); })();
+const ADAPT = REF_RGB.map(v => 1 / v);     // white balance: noon-ish sun looks neutral
+
+let SUN = null;          // current spectrum, Y-normalised
+let WX, WY, WZ;          // spectral weights S*cmf*dl
+let SUN_RGB;             // adapted rgb of the sun (Y=1)
+let BANDS = [];          // for the cuticle grating: {lam_um, rgb}
+function setSun(elev) {
+  SUN = sunSpectrum(elev);
+  WX = new Float64Array(NL); WY = new Float64Array(NL); WZ = new Float64Array(NL);
+  for (let i = 0; i < NL; i++) { WX[i] = SUN[i] * CMF[i][0] * DL; WY[i] = SUN[i] * CMF[i][1] * DL; WZ[i] = SUN[i] * CMF[i][2] * DL; }
+  const c = specXYZ(SUN, () => 1); SUN_RGB = adaptRGB(c[0], c[1], c[2]);
+  BANDS = [];
+  for (let b0 = 380; b0 < 780; b0 += 40) {
+    let X = 0, Y = 0, Z = 0, lw = 0, ws = 0;
+    for (let i = 0; i < NL; i++) if (LAMS[i] >= b0 && LAMS[i] < b0 + 40) { X += WX[i]; Y += WY[i]; Z += WZ[i]; const w = WY[i] + WX[i] + WZ[i]; lw += LAMS[i] * w; ws += w; }
+    if (ws > 0) BANDS.push({ lam: lw / ws / 1000, rgb: adaptRGB(X, Y, Z) });
+  }
+  diffCache.clear(); ttCache = null;
+}
+function adaptRGB(X, Y, Z) { const r = xyz2rgb(X, Y, Z); return [r[0] * ADAPT[0], r[1] * ADAPT[1], r[2] * ADAPT[2]]; }
+
+// ---------------------------------------------------------------- sun disk kernel (radial projection)
+const DTH = 0.004 * DEG, TH_MAX = 25 * DEG, NTH = Math.ceil(TH_MAX / DTH) + 1;
+const KHALF = Math.ceil(R_SUN / DTH);
+const KERNEL = (() => {
+  const k = new Float64Array(2 * KHALF + 1); let sum = 0;
+  for (let j = -KHALF; j <= KHALF; j++) {
+    const x = j * DTH; if (Math.abs(x) >= R_SUN) continue;
+    const c = Math.sqrt(R_SUN * R_SUN - x * x); let acc = 0; const n = 24;
+    for (let q = 0; q < n; q++) {
+      const y = -c + (q + 0.5) * 2 * c / n; const rho2 = (x * x + y * y) / (R_SUN * R_SUN);
+      const mu = Math.sqrt(Math.max(0, 1 - rho2)); acc += (1 - LIMB_U * (1 - mu)) * 2 * c / n;
+    }
+    k[j + KHALF] = acc; sum += acc;
+  }
+  for (let j = 0; j < k.length; j++) k[j] /= sum;     // sum k = 1 (discrete convolution weights)
+  return k;
+})();
+
+// ---------------------------------------------------------------- diffraction LUT  (d bins x theta)
+const D_MIN = 1, D_MAX = 220, N_DBIN = 220;
+const LOG_DR = Math.log(D_MAX / D_MIN) / (N_DBIN - 1);
+const diffCache = new Map();
+function binD(b) { return D_MIN * Math.exp(b * LOG_DR); }
+function buildDiffBin(b) {
+  const d = binD(b) * 1e-6;
+  const raw = new Float64Array(3 * NTH);
+  const lam = LAMS.map(l => l * 1e-9);
+  for (let j = 0; j < NTH; j++) {
+    const sth = Math.sin(j * DTH); let X = 0, Y = 0, Z = 0;
+    for (let i = 0; i < NL; i++) {
+      const x = Math.PI * d * sth / lam[i];
+      const s = x < 1e-8 ? 1 : Math.sin(x) / x;
+      const v = d * d / lam[i] * s * s;
+      X += v * WX[i]; Y += v * WY[i]; Z += v * WZ[i];
+    }
+    raw[3 * j] = X; raw[3 * j + 1] = Y; raw[3 * j + 2] = Z;
+  }
+  const out = new Float32Array(3 * NTH);
+  for (let j = 0; j < NTH; j++) {
+    let X = 0, Y = 0, Z = 0;
+    for (let k = -KHALF; k <= KHALF; k++) {
+      const w = KERNEL[k + KHALF]; if (!w) continue;
+      let jj = Math.abs(j + k); if (jj >= NTH) jj = NTH - 1;
+      X += raw[3 * jj] * w; Y += raw[3 * jj + 1] * w; Z += raw[3 * jj + 2] * w;
+    }
+    out[3 * j] = X; out[3 * j + 1] = Y; out[3 * j + 2] = Z;
+  }
+  return out;
+}
+let pendingBins = 0;
+function getBin(b) {
+  let a = diffCache.get(b);
+  if (!a) { a = buildDiffBin(b); diffCache.set(b, a); pendingBins++; }
+  return a;
+}
+// asymptotic sinc^2 average far from the sun: sigma -> lambda / (2 pi^2 sin^2 theta), independent of d
+function asymXYZ(th, out) {
+  const s2 = Math.sin(th) ** 2; let X = 0, Y = 0, Z = 0;
+  for (let i = 0; i < NL; i++) { const v = LAMS[i] * 1e-9 / (2 * Math.PI * Math.PI * s2); X += v * WX[i]; Y += v * WY[i]; Z += v * WZ[i]; }
+  out[0] = X; out[1] = Y; out[2] = Z;
+}
+const ASYM_AT_MAX = new Float64Array(3);
+function diffXYZ(dum, th, out) {
+  if (th >= TH_MAX - DTH) { asymXYZ(th, out); return; }
+  let bf = Math.log(dum / D_MIN) / LOG_DR; if (bf < 0) bf = 0; if (bf > N_DBIN - 1.001) bf = N_DBIN - 1.001;
+  const b0 = bf | 0, fb = bf - b0;
+  const tf = th / DTH, j0 = tf | 0, ft = tf - j0;
+  const A = getBin(b0), B = getBin(b0 + 1);
+  for (let c = 0; c < 3; c++) {
+    const a = A[3 * j0 + c] * (1 - ft) + A[3 * (j0 + 1) + c] * ft;
+    const bb = B[3 * j0 + c] * (1 - ft) + B[3 * (j0 + 1) + c] * ft;
+    out[c] = a * (1 - fb) + bb * fb;
+  }
+}
+
+// ---------------------------------------------------------------- TT LUT (geometric refraction)
+const TT_NB = 40, TT_NA = 181;
+let ttCache = null;
+function fresnel(ci, eta) {
+  const st2 = (1 - ci * ci) / (eta * eta); if (st2 >= 1) return 1;
+  const ct = Math.sqrt(1 - st2);
+  const rs = (ci - eta * ct) / (ci + eta * ct), rp = (eta * ci - ct) / (eta * ci + ct);
+  return 0.5 * (rs * rs + rp * rp);
+}
+function buildTT() {
+  const lut = new Float32Array(TT_NB * TT_NA * 3);
+  const NH = 4000;
+  for (let tb = 0; tb < TT_NB; tb++) {
+    const dum = D_MIN * Math.exp(tb * Math.log(D_MAX / D_MIN) / (TT_NB - 1));
+    const sig = [0, 1, 2].map(c => (state.eu * EU_SIG[c] + state.ph * PH_SIG[c]) * (dum / 2) / R_REF_UM);
+    for (let k = 0; k < NH; k++) {
+      const h = -1 + (k + 0.5) * 2 / NH;
+      const gi = Math.asin(h), gt = Math.asin(h / ETA);
+      const F = fresnel(Math.cos(gi), ETA);
+      const delta = Math.abs(2 * gi - 2 * gt);
+      const bin = Math.min(TT_NA - 1, Math.round(delta / DEG));
+      const lp = 2 * Math.cos(gt);
+      for (let c = 0; c < 3; c++) {
+        const A = (1 - F) * (1 - F) * Math.exp(-sig[c] * lp);
+        lut[(tb * TT_NA + bin) * 3 + c] += A * (2 / NH) * 0.5 / (2 * DEG);
+      }
+    }
+  }
+  ttCache = lut;
+}
+function ttN(dum, delta, out) {
+  if (!ttCache) buildTT();
+  let bf = Math.log(dum / D_MIN) / (Math.log(D_MAX / D_MIN) / (TT_NB - 1));
+  if (bf < 0) bf = 0; if (bf > TT_NB - 1.001) bf = TT_NB - 1.001;
+  const b0 = bf | 0, fb = bf - b0;
+  let af = delta / DEG; if (af > TT_NA - 1.001) af = TT_NA - 1.001;
+  const a0 = af | 0, fa = af - a0;
+  for (let c = 0; c < 3; c++) {
+    const i00 = (b0 * TT_NA + a0) * 3 + c, i01 = i00 + 3, i10 = ((b0 + 1) * TT_NA + a0) * 3 + c, i11 = i10 + 3;
+    out[c] = (ttCache[i00] * (1 - fa) + ttCache[i01] * fa) * (1 - fb) + (ttCache[i10] * (1 - fa) + ttCache[i11] * fa) * fb;
+  }
+}
+
+// ---------------------------------------------------------------- state and presets
+const PRESETS = [
+  { id: 'fuzz', name: 'Peach fuzz 12 µm', d: 12, cv: 20, len: 3, eu: 0.12, ecc: 1.08, n: 1300, sy: -1.6 },
+  { id: 'arm', name: 'Forearm hair 22 µm', d: 22, cv: 20, len: 6, eu: 0.5, ecc: 1.1, n: 1000 },
+  { id: 'blond', name: 'Blond scalp hair 70 µm', d: 70, cv: 15, len: 14, eu: 0.3, ecc: 1.15, n: 350 },
+  { id: 'dark', name: 'Dark scalp hair 85 µm', d: 85, cv: 15, len: 14, eu: 6, ecc: 1.2, n: 350 },
+  { id: 'silk', name: 'Spider silk 3 µm', d: 3, cv: 10, len: 18, eu: 0, ecc: 1.0, n: 160, fov: 30, sy: -5 },
+];
+const state = {
+  d: 22, cv: 20, ecc: 1.1, eu: 0.5, ph: 0.0, len: 6, n: 1000,
+  sx: 0.4, sy: -0.9, elev: 35, roll: -8, yaw: 0, fov: 7,
+  diff: true, tt: true, cut: false, per: 6, eta: 0.15,
+  breeze: true, rings: true, outline: true, compress: true, auto: true, ev: 0, bg: 0.02,
+  preset: 'arm'
+};
+const dSlider = { toVal: x => 1 * Math.pow(200, x / 1000), toPos: v => 1000 * Math.log(v) / Math.log(200) };
+const melSlider = { toVal: x => 8 * Math.pow(x / 100, 2), toPos: v => 100 * Math.sqrt(v / 8) };
+const bgSlider = { toVal: x => x === 0 ? 0 : 0.2 * Math.pow(x / 100, 2), toPos: v => 100 * Math.sqrt(v / 0.2) };
+
+// ---------------------------------------------------------------- RNG + hairs
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(rng) { let u = 0, v = 0; while (u === 0) u = rng(); v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+let hairs = [];
+function genHairs() {
+  const rng = mulberry32(20261023);
+  hairs = [];
+  for (let i = 0; i < state.n; i++) {
+    hairs.push({
+      u: (rng() * 2 - 1) * 0.05,
+      phi: (-40 + rng() * 75) * DEG,   // around the upper limb; hairs further forward are in the arm's shadow
+      sgn: rng() < 0.85 ? 1 : -1,
+      lift: (12 + rng() * 30) * DEG,
+      az: (rng() * 2 - 1) * 30 * DEG,
+      kappa: 40 + rng() * 170,
+      kappa2: (rng() * 2 - 1) * 50,
+      lf: 0.55 + rng() * 0.9,
+      dz: gauss(rng),
+      w0: rng() * Math.PI,
+      twist: (rng() * 2 - 1) * 0.3,
+      ph1: rng() * 6.283, ph2: rng() * 6.283, fr: 0.5 + rng() * 0.8,
+    });
+  }
+}
+
+// ---------------------------------------------------------------- vector helpers
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm = a => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
+
+// ---------------------------------------------------------------- scene setup
+const cv = document.getElementById('scene'), ctx = cv.getContext('2d');
+let W = 0, H = 0, F = 1, buf = null, img = null, armMask = null, armKey = '';
+let arm = null;
+function sunDir() { return norm([Math.tan(state.sx * DEG), Math.tan(state.sy * DEG), 1]); }
+function setupArm() {
+  const r = state.roll * DEG, y = state.yaw * DEG;
+  let A = [Math.cos(r), Math.sin(r), 0];
+  A = [A[0] * Math.cos(y), A[1], A[0] * Math.sin(y)];
+  A = norm(A);
+  const Y = [0, 1, 0];
+  const upP = norm([Y[0] - dot(Y, A) * A[0], Y[1] - dot(Y, A) * A[1], Y[2] - dot(Y, A) * A[2]]);
+  const C = [-ARM_R * upP[0], -ARM_R * upP[1], ARM_Z - ARM_R * upP[2]];
+  const mc = [-C[0], -C[1], -C[2]]; const k = dot(mc, A);
+  const toCam = norm([mc[0] - k * A[0], mc[1] - k * A[1], mc[2] - k * A[2]]);
+  let limb = norm(cross(A, toCam)); if (limb[1] < 0) limb = [-limb[0], -limb[1], -limb[2]];
+  arm = { A, C, toCam, limb };
+}
+// ray from the eye along unit u: distance to the arm cylinder, or Infinity
+function hitArm(ux, uy, uz) { return hitArmFrom(0, 0, 0, ux, uy, uz); }
+function hitArmFrom(ox, oy, oz, ux, uy, uz) {
+  const A = arm.A, C = arm.C;
+  const ua = ux * A[0] + uy * A[1] + uz * A[2];
+  const px = ux - ua * A[0], py = uy - ua * A[1], pz = uz - ua * A[2];
+  const wx = ox - C[0], wy = oy - C[1], wz = oz - C[2];
+  const wa = wx * A[0] + wy * A[1] + wz * A[2];
+  const qx = wx - wa * A[0], qy = wy - wa * A[1], qz = wz - wa * A[2];
+  const a = px * px + py * py + pz * pz, b = 2 * (px * qx + py * qy + pz * qz), c = qx * qx + qy * qy + qz * qz - ARM_R * ARM_R;
+  const disc = b * b - 4 * a * c; if (disc < 0 || a < 1e-12) return Infinity;
+  const sq = Math.sqrt(disc), t1 = (-b - sq) / (2 * a), t2 = (-b + sq) / (2 * a);
+  return t1 > 1e-6 ? t1 : t2 > 1e-6 ? t2 : Infinity;
+}
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientWidth * dpr * 10 / 16);
+  if (w === W && h === H) return;
+  W = w; H = h; cv.width = W; cv.height = H;
+  buf = new Float32Array(W * H * 3); img = ctx.createImageData(W, H); armKey = '';
+}
+function computeArmMask() {
+  const key = [W, H, state.fov, state.roll, state.yaw].join(',');
+  if (key === armKey) return; armKey = key;
+  armMask = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const dx = (x + 0.5 - W / 2) / F, dy = -(y + 0.5 - H / 2) / F, l = Math.hypot(dx, dy, 1);
+    armMask[y * W + x] = hitArm(dx / l, dy / l, 1 / l) < Infinity ? 1 : 0;
+  }
+}
+
+// ---------------------------------------------------------------- render
+const P = new Float64Array((NSEG + 1) * 3), T = new Float64Array((NSEG + 1) * 3), V = new Float64Array((NSEG + 1) * 3);
+const RR = new Float64Array(NSEG + 1), SX = new Float64Array(NSEG + 1), SY = new Float64Array(NSEG + 1);
+const OCC = new Uint8Array(NSEG + 1);
+const tmp3 = new Float64Array(3), tmpN = new Float64Array(3);
+let curEV = -7, lastStats = null;
+function cdf(h) { if (h <= -1) return 0; if (h >= 1) return 1; return 0.5 + (h * Math.sqrt(1 - h * h) + Math.asin(h)) / Math.PI; }
+function fprof(h) { return Math.abs(h) >= 1 ? 0 : (2 / Math.PI) * Math.sqrt(1 - h * h); }
+
+function splat(x0, y0, x1, y1, r, g, b) {
+  const len = Math.hypot(x1 - x0, y1 - y0);
+  const ns = Math.max(1, Math.ceil(len * 2));
+  const k = len * F / ns;    // total deposit = L_line(rad) * angular length * F^2 = L * len_px * F
+  r *= k; g *= k; b *= k;
+  for (let j = 0; j < ns; j++) {
+    const t = (j + 0.5) / ns, x = x0 + (x1 - x0) * t - 0.5, y = y0 + (y1 - y0) * t - 0.5;
+    const ix = Math.floor(x), iy = Math.floor(y); if (ix < 0 || iy < 0 || ix >= W - 1 || iy >= H - 1) continue;
+    const fx = x - ix, fy = y - iy;
+    const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+    let p = (iy * W + ix) * 3;
+    buf[p] += r * w00; buf[p + 1] += g * w00; buf[p + 2] += b * w00;
+    buf[p + 3] += r * w10; buf[p + 4] += g * w10; buf[p + 5] += b * w10;
+    p += W * 3;
+    buf[p] += r * w01; buf[p + 1] += g * w01; buf[p + 2] += b * w01;
+    buf[p + 3] += r * w11; buf[p + 4] += g * w11; buf[p + 5] += b * w11;
+  }
+}
+
+function render(time) {
+  resize();
+  F = (W / 2) / Math.tan(state.fov * DEG / 2);
+  setupArm(); computeArmMask();
+  buf.fill(0);
+  const s = sunDir();
+  const sway = state.breeze ? 1 : 0;
+  const A = arm.A, toCam = arm.toCam, limb = arm.limb, C = arm.C;
+  const dMeanUm = state.d;
+  const per = state.per, etaC = state.cut ? state.eta : 0;
+  for (const hr of hairs) {
+    const n = [Math.cos(hr.phi) * limb[0] + Math.sin(hr.phi) * toCam[0], Math.cos(hr.phi) * limb[1] + Math.sin(hr.phi) * toCam[1], Math.cos(hr.phi) * limb[2] + Math.sin(hr.phi) * toCam[2]];
+    const T1 = [A[0] * hr.sgn, A[1] * hr.sgn, A[2] * hr.sgn];
+    const T2 = cross(n, T1);
+    const lift = hr.lift + sway * 2.5 * DEG * Math.sin(time * hr.fr + hr.ph1);
+    const az = hr.az + sway * 3 * DEG * Math.sin(time * hr.fr * 0.7 + hr.ph2);
+    let dir = norm([
+      Math.cos(lift) * (Math.cos(az) * T1[0] + Math.sin(az) * T2[0]) + Math.sin(lift) * n[0],
+      Math.cos(lift) * (Math.cos(az) * T1[1] + Math.sin(az) * T2[1]) + Math.sin(lift) * n[1],
+      Math.cos(lift) * (Math.cos(az) * T1[2] + Math.sin(az) * T2[2]) + Math.sin(lift) * n[2]]);
+    const L = state.len * 1e-3 * hr.lf, ds = L / NSEG;
+    let px = C[0] + hr.u * A[0] + ARM_R * 1.0005 * n[0], py = C[1] + hr.u * A[1] + ARM_R * 1.0005 * n[1], pz = C[2] + hr.u * A[2] + ARM_R * 1.0005 * n[2];
+    for (let k = 0; k <= NSEG; k++) {
+      P[3 * k] = px; P[3 * k + 1] = py; P[3 * k + 2] = pz;
+      T[3 * k] = dir[0]; T[3 * k + 1] = dir[1]; T[3 * k + 2] = dir[2];
+      px += dir[0] * ds; py += dir[1] * ds; pz += dir[2] * ds;
+      const nd = dot(n, dir), td = dot(T2, dir);
+      dir = norm([
+        dir[0] - hr.kappa * ds * (n[0] - nd * dir[0]) + hr.kappa2 * ds * (T2[0] - td * dir[0]),
+        dir[1] - hr.kappa * ds * (n[1] - nd * dir[1]) + hr.kappa2 * ds * (T2[1] - td * dir[1]),
+        dir[2] - hr.kappa * ds * (n[2] - nd * dir[2]) + hr.kappa2 * ds * (T2[2] - td * dir[2])]);
+    }
+    let anyOn = false;
+    for (let k = 0; k <= NSEG; k++) {
+      const x = P[3 * k], y = P[3 * k + 1], z = P[3 * k + 2], r = Math.hypot(x, y, z);
+      RR[k] = r; V[3 * k] = x / r; V[3 * k + 1] = y / r; V[3 * k + 2] = z / r;
+      SX[k] = W / 2 + F * x / z; SY[k] = H / 2 - F * y / z;
+      // hidden from the eye, or in the arm's shadow (no direct sun reaches this point)
+      OCC[k] = (hitArm(x / r, y / r, z / r) < r - 1e-5 || hitArmFrom(x, y, z, s[0], s[1], s[2]) < Infinity) ? 1 : 0;
+      if (SX[k] > -5 && SX[k] < W + 5 && SY[k] > -5 && SY[k] < H + 5) anyOn = true;
+    }
+    if (!anyOn) continue;
+    const dHair = dMeanUm * Math.exp(hr.dz * state.cv / 100 - 0.5 * (state.cv / 100) ** 2);
+    const e = state.ecc;
+    for (let k = 0; k < NSEG; k++) {
+      if (OCC[k] || OCC[k + 1]) continue;
+      const i0 = 3 * k, i1 = 3 * k + 3;
+      let vx = V[i0] + V[i1], vy = V[i0 + 1] + V[i1 + 1], vz = V[i0 + 2] + V[i1 + 2]; let l = Math.hypot(vx, vy, vz); vx /= l; vy /= l; vz /= l;
+      let tx = T[i0] + T[i1], ty = T[i0 + 1] + T[i1 + 1], tz = T[i0 + 2] + T[i1 + 2]; l = Math.hypot(tx, ty, tz); tx /= l; ty /= l; tz /= l;
+      const rm = 0.5 * (RR[k] + RR[k + 1]);
+      const uf = (k + 0.5) / NSEG;
+      const taper = uf < 0.75 ? 1 : 1 - 0.6 * (uf - 0.75) / 0.25;
+      const om = hr.w0 + hr.twist * uf * state.len * hr.lf;
+      const ell = Math.sqrt(e * Math.cos(om) ** 2 + Math.sin(om) ** 2 / e);
+      const dSeg = dHair * taper * ell;          // µm, projected width
+      const cth = Math.min(1, Math.max(-1, s[0] * vx + s[1] * vy + s[2] * vz));
+      const th = Math.acos(cth);
+      const ts = s[0] * tx + s[1] * ty + s[2] * tz;
+      const spsi = Math.sqrt(Math.max(0, 1 - ts * ts));
+      let r = 0, g = 0, b = 0;
+      if (state.diff && spsi > 0.02) {
+        const G = R_SUN * spsi;
+        const g0 = (s[0] - V[i0]) * T[i0] + (s[1] - V[i0 + 1]) * T[i0 + 1] + (s[2] - V[i0 + 2]) * T[i0 + 2];
+        const g1 = (s[0] - V[i1]) * T[i1] + (s[1] - V[i1 + 1]) * T[i1 + 1] + (s[2] - V[i1 + 2]) * T[i1 + 2];
+        let wgt;
+        if (Math.abs(g1 - g0) > 1e-3 * G) wgt = (cdf(g1 / G) - cdf(g0 / G)) / (g1 - g0);
+        else wgt = fprof(0.5 * (g0 + g1) / G) / G;
+        if (wgt > 0) {
+          diffXYZ(dSeg, th, tmp3);
+          const k2 = Math.PI * wgt / rm;     // white-card units: pi * L / E
+          const c = adaptRGB(tmp3[0] * k2, tmp3[1] * k2, tmp3[2] * k2);
+          r += c[0]; g += c[1]; b += c[2];
+        }
+      }
+      if (state.tt) {
+        const tv = tx * vx + ty * vy + tz * vz;
+        const thI = Math.asin(Math.max(-1, Math.min(1, ts))), thO = Math.asin(Math.max(-1, Math.min(1, -tv)));
+        const thH = 0.5 * (thI + thO), thD = 0.5 * (thO - thI);
+        // azimuth between sun and view projected into the fiber's normal plane
+        let ax = s[0] - ts * tx, ay = s[1] - ts * ty, az2 = s[2] - ts * tz;
+        let bx = vx - tv * tx, by = vy - tv * ty, bz = vz - tv * tz;
+        const la = Math.hypot(ax, ay, az2), lb = Math.hypot(bx, by, bz);
+        if (la > 1e-6 && lb > 1e-6) {
+          const delta = Math.acos(Math.max(-1, Math.min(1, (ax * bx + ay * by + az2 * bz) / (la * lb))));
+          ttN(dHair * taper, delta, tmpN);
+          const cd2 = Math.cos(thD) ** 2;
+          const base = Math.PI * dHair * taper * 1e-6 * Math.cos(thI) / (cd2 * rm);
+          const M0 = Math.exp(-0.5 * ((thH - ALPHA_TT) / BETA_TT) ** 2) / (BETA_TT * 2.5066);
+          const k0 = base * M0 * (1 - 2 * etaC);
+          r += k0 * tmpN[0] * SUN_RGB[0]; g += k0 * tmpN[1] * SUN_RGB[1]; b += k0 * tmpN[2] * SUN_RGB[2];
+          if (etaC > 0) {
+            for (const band of BANDS) {
+              const step = band.lam / per;
+              const beff = Math.sqrt(BETA_TT * BETA_TT + (0.5 * CUT_JITTER * step) ** 2);
+              for (const m of [-1, 1]) {
+                const th2 = thH - 0.5 * m * step;
+                const Mm = Math.exp(-0.5 * ((th2 - ALPHA_TT) / beff) ** 2) / (beff * 2.5066);
+                const km = base * Mm * etaC;
+                r += km * tmpN[0] * band.rgb[0]; g += km * tmpN[1] * band.rgb[1]; b += km * tmpN[2] * band.rgb[2];
+              }
+            }
+          }
+        }
+      }
+      if (r !== 0 || g !== 0 || b !== 0) splat(SX[k], SY[k], SX[k + 1], SY[k + 1], r, g, b);
+    }
+  }
+  toneMap(s);
+}
+
+function toneMap(s) {
+  // auto exposure from the bright end of the hair pixels
+  if (state.auto) {
+    const hist = new Uint32Array(200); let cnt = 0;
+    for (let p = 0, n = W * H; p < n; p += 3) {
+      const Y = 0.2126 * buf[3 * p] + 0.7152 * buf[3 * p + 1] + 0.0722 * buf[3 * p + 2];
+      if (Y > 1e-3) { const bi = Math.max(0, Math.min(199, Math.floor((Math.log10(Y) + 3) * 20))); hist[bi]++; cnt++; }
+    }
+    let target = curEV;
+    if (cnt > 20) {
+      let acc = 0, bi = 199; const lim = cnt * 0.004;
+      for (; bi > 0; bi--) { acc += hist[bi]; if (acc >= lim) break; }
+      const Yp = Math.pow(10, bi / 20 - 3);
+      target = Math.log2((state.compress ? 2.5 : 1.6) / Yp);
+    }
+    curEV = state.breeze ? curEV + (target - curEV) * 0.15 : target;
+  }
+  const ev = Math.pow(2, (state.auto ? curEV : -7) + state.ev);
+  const bgc = [0.85 * state.bg, 0.95 * state.bg, 1.15 * state.bg];
+  const sk = [0.55 * state.bg, 0.36 * state.bg, 0.3 * state.bg];
+  const data = img.data;
+  const pix = (r, g, b, isArm, out) => {
+    const mn = Math.min(r, g, b);
+    if (mn < 0) {   // out of sRGB gamut: desaturate toward equal luminance
+      const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      if (Y <= 0) { r = g = b = 0; } else { const k = Y / (Y - mn); r = Y + (r - Y) * k; g = Y + (g - Y) * k; b = Y + (b - Y) * k; }
+    }
+    if (state.compress) {   // display tone curve: luminance^0.5, hue kept
+      const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      if (Y > 0) { const k = Math.pow(Y, 0.5) / Y; r *= k; g *= k; b *= k; }
+    }
+    if (state.outline && isArm) { r += 0.035; g += 0.026; b += 0.021; }   // display aid, not physical
+    out[0] = enc(1 - Math.exp(-r)); out[1] = enc(1 - Math.exp(-g)); out[2] = enc(1 - Math.exp(-b));
+  };
+  const cBg = [0, 0, 0], cArm = [0, 0, 0], c = [0, 0, 0];
+  pix(bgc[0] * ev, bgc[1] * ev, bgc[2] * ev, false, cBg);
+  pix(sk[0] * ev, sk[1] * ev, sk[2] * ev, true, cArm);
+  for (let p = 0, n = W * H; p < n; p++) {
+    const q = 3 * p, isArm = armMask[p] === 1;
+    let o = isArm ? cArm : cBg;
+    if (buf[q] !== 0 || buf[q + 1] !== 0 || buf[q + 2] !== 0) {
+      const base = isArm ? sk : bgc;
+      pix((buf[q] + base[0]) * ev, (buf[q + 1] + base[1]) * ev, (buf[q + 2] + base[2]) * ev, isArm, c); o = c;
+    }
+    data[4 * p] = o[0]; data[4 * p + 1] = o[1]; data[4 * p + 2] = o[2]; data[4 * p + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  drawOverlay(s);
+}
+const ENC = new Uint8Array(4097);
+for (let i = 0; i <= 4096; i++) { const x = i / 4096; ENC[i] = Math.round(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)); }
+function enc(x) { return ENC[Math.max(0, Math.min(4096, (x * 4096) | 0))]; }
+
+function drawOverlay(s) {
+  const sxp = W / 2 + F * s[0] / s[2], syp = H / 2 - F * s[1] / s[2];
+  const hidden = hitArm(s[0], s[1], s[2]) < Infinity;
+  const rpx = F * Math.tan(R_SUN);
+  const dpr = W / cv.clientWidth;
+  if (!hidden) {
+    const g = ctx.createRadialGradient(sxp, syp, 0, sxp, syp, rpx * 14);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.07, 'rgba(255,255,250,1)');
+    g.addColorStop(0.2, 'rgba(255,250,235,0.45)'); g.addColorStop(1, 'rgba(255,250,235,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sxp, syp, rpx * 14, 0, 7); ctx.fill();
+  } else {
+    ctx.strokeStyle = 'rgba(242,196,109,0.85)'; ctx.setLineDash([3 * dpr, 3 * dpr]); ctx.lineWidth = dpr;
+    ctx.beginPath(); ctx.arc(sxp, syp, rpx, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(242,196,109,0.9)'; ctx.font = `${11 * dpr}px ui-monospace, Menlo, monospace`;
+    ctx.fillText('sun (behind arm)', sxp + rpx + 4 * dpr, syp + 4 * dpr);
+  }
+  if (state.rings) {
+    ctx.lineWidth = dpr; ctx.font = `${10 * dpr}px ui-monospace, Menlo, monospace`;
+    for (const a of [1, 2, 4, 8, 16]) {
+      const rr = F * Math.tan(a * DEG);
+      ctx.strokeStyle = 'rgba(255,255,255,0.13)'; ctx.beginPath(); ctx.arc(sxp, syp, rr, 0, 7); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillText(a + '°', sxp + rr * 0.707 + 2 * dpr, syp - rr * 0.707 - 2 * dpr);
+    }
+  }
+}
+
+// ---------------------------------------------------------------- chart
+const ch = document.getElementById('chart'), cctx = ch.getContext('2d');
+function chartRange() { return Math.min(25, Math.max(1.5, 5 * 0.55 / state.d / DEG)); }
+function drawChart() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.round(ch.clientWidth * dpr), h = Math.round(ch.clientHeight * dpr);
+  if (ch.width !== w || ch.height !== h) { ch.width = w; ch.height = h; }
+  cctx.fillStyle = '#15181d'; cctx.fillRect(0, 0, w, h);
+  const L = 70 * dpr, Rm = 14 * dpr, top = 8 * dpr;
+  const pw = w - L - Rm, sh = 26 * dpr, gap = 6 * dpr;
+  const plotTop = top + 2 * sh + 2 * gap + 8 * dpr, plotH = h - plotTop - 26 * dpr;
+  const thMax = chartRange() * DEG;
+  const xyz = new Float64Array(3);
+  const cols = [];
+  let Ymax = 0;
+  for (let i = 0; i < pw; i++) {
+    const th = (i + 0.5) / pw * thMax;
+    diffXYZ(state.d, th, xyz);
+    cols.push([xyz[0], xyz[1], xyz[2], th]);
+    if (th > 2 * R_SUN && xyz[1] > Ymax) Ymax = xyz[1];
+  }
+  // strip 1: as seen (relative brightness); strip 2: equal brightness hue
+  const id1 = cctx.createImageData(pw, 1), id2 = cctx.createImageData(pw, 1);
+  for (let i = 0; i < pw; i++) {
+    const [X, Y, Z] = cols[i];
+    let c = adaptRGB(X / Ymax, Y / Ymax, Z / Ymax);
+    c = fixGamut(c);
+    id1.data.set([enc(1 - Math.exp(-2.2 * c[0])), enc(1 - Math.exp(-2.2 * c[1])), enc(1 - Math.exp(-2.2 * c[2])), 255], 4 * i);
+    let e = adaptRGB(X / Y, 1, Z / Y); e = fixGamut(e);
+    const m = Math.max(e[0], e[1], e[2], 1e-9), k = 0.42 / (0.2126 * e[0] + 0.7152 * e[1] + 0.0722 * e[2]);
+    const kk = Math.min(k, 1 / m);
+    id2.data.set([enc(e[0] * kk), enc(e[1] * kk), enc(e[2] * kk), 255], 4 * i);
+  }
+  const tmpc = document.createElement('canvas'); tmpc.width = pw; tmpc.height = 1;
+  const tc = tmpc.getContext('2d');
+  tc.putImageData(id1, 0, 0); cctx.imageSmoothingEnabled = false; cctx.drawImage(tmpc, L, top, pw, sh);
+  tc.putImageData(id2, 0, 0); cctx.drawImage(tmpc, L, top + sh + gap, pw, sh);
+  cctx.fillStyle = '#9aa0a8'; cctx.font = `${11 * dpr}px -apple-system, Helvetica, sans-serif`; cctx.textAlign = 'right';
+  cctx.fillText('as bright', L - 6 * dpr, top + sh * 0.65);
+  cctx.fillText('hue only', L - 6 * dpr, top + sh + gap + sh * 0.65);
+  // log brightness curve
+  cctx.strokeStyle = '#262b33'; cctx.lineWidth = 1;
+  for (let dec = 0; dec <= 3; dec++) { const y = plotTop + dec / 3 * plotH; cctx.beginPath(); cctx.moveTo(L, y); cctx.lineTo(L + pw, y); cctx.stroke(); cctx.fillText(dec === 0 ? '1' : '10⁻' + dec, L - 6 * dpr, y + 4 * dpr); }
+  // sun disk region
+  const xs = R_SUN / thMax * pw;
+  cctx.fillStyle = 'rgba(242,196,109,0.12)'; cctx.fillRect(L, top, xs, plotTop + plotH - top);
+  // minima of 1st order for blue/green/red
+  const marks = [[450, '#6d8cff'], [550, '#6fdc6f'], [650, '#ff6b5b']];
+  for (const [lm, col] of marks) {
+    const s1 = lm * 1e-3 / state.d; if (s1 >= 1) continue;
+    const th1 = Math.asin(s1); if (th1 > thMax) continue;
+    const x = L + th1 / thMax * pw;
+    cctx.strokeStyle = col; cctx.setLineDash([3 * dpr, 3 * dpr]); cctx.beginPath(); cctx.moveTo(x, plotTop); cctx.lineTo(x, plotTop + plotH); cctx.stroke(); cctx.setLineDash([]);
+  }
+  cctx.strokeStyle = '#e8e6e1'; cctx.lineWidth = 1.5 * dpr; cctx.beginPath();
+  for (let i = 0; i < pw; i++) {
+    const v = Math.max(-3, Math.log10(Math.max(1e-9, cols[i][1] / Ymax)));
+    const y = plotTop + (-v) / 3 * plotH;
+    if (i === 0) cctx.moveTo(L + i, y); else cctx.lineTo(L + i, y);
+  }
+  cctx.stroke();
+  // x axis
+  cctx.textAlign = 'center'; cctx.fillStyle = '#9aa0a8';
+  const step = thMax / DEG > 12 ? 2 : thMax / DEG > 5 ? 1 : thMax / DEG > 2.4 ? 0.5 : 0.25;
+  for (let a = 0; a <= thMax / DEG + 1e-6; a += step) { const x = L + a * DEG / thMax * pw; cctx.fillText(a + '°', x, plotTop + plotH + 16 * dpr); }
+  cctx.textAlign = 'left';
+  cctx.textAlign = 'right'; cctx.fillText('angle from the sun →', L + pw, plotTop - 4 * dpr);
+  const coh = 0.55e-6 / (2 * R_SUN) * 1e6;
+  document.getElementById('chartnote').innerHTML =
+    `Colour of a hair lying across the sun's direction, at each angle from the sun, for d = ${fmtD(state.d)}. ` +
+    `Dashed lines: first dark fringe for blue (450 nm), green (550 nm) and red (650 nm). The shaded strip is the sun's disk. ` +
+    `Lower curve: brightness on a log scale (it falls roughly as 1/θ²). The sun's spatial coherence width is λ/(2R) ≈ ${coh.toFixed(0)} µm. ` +
+    (state.d > coh ? `This hair is thicker than that, so its fringes are mostly washed out.` : `This hair is thinner than that, so its fringes survive and the colours are vivid.`);
+}
+function fixGamut(c) {
+  const mn = Math.min(c[0], c[1], c[2]); if (mn >= 0) return c;
+  const Y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; if (Y <= 0) return [0, 0, 0];
+  const k = Y / (Y - mn); return [Y + (c[0] - Y) * k, Y + (c[1] - Y) * k, Y + (c[2] - Y) * k];
+}
+
+// ---------------------------------------------------------------- UI
+function fmtD(v) { return v < 10 ? v.toFixed(1) + ' µm' : Math.round(v) + ' µm'; }
+const controls = {
+  d: { fmt: fmtD, map: dSlider, regen: false },
+  cv: { fmt: v => v + '%' }, ecc: { fmt: v => v.toFixed(2) },
+  mel: { key: 'eu', fmt: v => v.toFixed(2), map: melSlider, tt: true },
+  len: { fmt: v => v + ' mm' }, n: { fmt: v => v, regen: true },
+  sx: { fmt: v => v.toFixed(2) + '°' }, sy: { fmt: v => v.toFixed(2) + '°' },
+  elev: { fmt: v => v + '° (air mass ' + airMass(v).toFixed(2) + ')', sun: true },
+  roll: { fmt: v => v + '°' }, yaw: { fmt: v => v + '°' }, fov: { fmt: v => v + '°' },
+  per: { fmt: v => v.toFixed(1) + ' µm' }, eta: { fmt: v => v.toFixed(2) },
+  ev: { fmt: v => (v > 0 ? '+' : '') + v + ' EV' }, bg: { fmt: v => (v * 100).toFixed(1) + '% of white card', map: bgSlider },
+};
+function syncUI() {
+  for (const id in controls) {
+    const c = controls[id], key = c.key || id, el = document.getElementById(id);
+    el.value = c.map ? c.map.toPos(state[key]) : state[key];
+    document.getElementById(id + '_o').textContent = c.fmt(state[key]);
+  }
+  for (const id of ['diff', 'tt', 'cut']) document.getElementById('m_' + id).checked = state[id];
+  for (const id of ['breeze', 'rings', 'outline', 'compress', 'auto']) document.getElementById(id).checked = state[id];
+  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.id === state.preset));
+}
+for (const id in controls) {
+  const c = controls[id], key = c.key || id, el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    const v = parseFloat(el.value);
+    state[key] = c.map ? c.map.toVal(v) : v;
+    document.getElementById(id + '_o').textContent = c.fmt(state[key]);
+    if (['d', 'cv', 'mel', 'len', 'n', 'ecc'].includes(id)) { state.preset = null; document.querySelectorAll('#presets button').forEach(b => b.classList.remove('on')); }
+    if (c.regen) genHairs();
+    if (c.tt) ttCache = null;
+    if (c.sun) setSun(state.elev);
+    schedule();
+  });
+}
+for (const id of ['diff', 'tt', 'cut']) document.getElementById('m_' + id).addEventListener('change', e => { state[id] = e.target.checked; schedule(); });
+for (const id of ['breeze', 'rings', 'outline', 'compress', 'auto']) document.getElementById(id).addEventListener('change', e => { state[id] = e.target.checked; schedule(); });
+const pdiv = document.getElementById('presets');
+for (const p of PRESETS) {
+  const b = document.createElement('button'); b.textContent = p.name; b.dataset.id = p.id;
+  b.addEventListener('click', () => {
+    Object.assign(state, { d: p.d, cv: p.cv, len: p.len, eu: p.eu, ecc: p.ecc, n: p.n, fov: p.fov || 7, sy: p.sy !== undefined ? p.sy : -0.9, preset: p.id });
+    ttCache = null; genHairs(); syncUI(); schedule();
+  });
+  pdiv.appendChild(b);
+}
+// drag the sun
+let dragging = false;
+function evToDir(ev) {
+  const rect = cv.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) / rect.width * W, y = (ev.clientY - rect.top) / rect.height * H;
+  return norm([(x - W / 2) / F, -(y - H / 2) / F, 1]);
+}
+cv.addEventListener('pointerdown', e => { dragging = true; cv.setPointerCapture(e.pointerId); moveSun(e); });
+cv.addEventListener('pointerup', () => dragging = false);
+cv.addEventListener('pointermove', e => { if (dragging) moveSun(e); hover(e); });
+function moveSun(e) {
+  const d = evToDir(e);
+  state.sx = Math.max(-8, Math.min(8, Math.atan(d[0] / d[2]) / DEG));
+  state.sy = Math.max(-5, Math.min(5, Math.atan(d[1] / d[2]) / DEG));
+  syncUI(); schedule();
+}
+const hud = document.getElementById('hud');
+let hoverInfo = '';
+function hover(e) {
+  const d = evToDir(e), s = sunDir();
+  const th = Math.acos(Math.max(-1, Math.min(1, dot(d, s))));
+  diffXYZ(state.d, th, tmp3);
+  let c = fixGamut(adaptRGB(tmp3[0] / tmp3[1], 1, tmp3[2] / tmp3[1]));
+  const k = Math.min(0.45 / (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]), 1 / Math.max(...c));
+  const css = `rgb(${enc(c[0] * k)},${enc(c[1] * k)},${enc(c[2] * k)})`;
+  hoverInfo = `cursor: ${(th / DEG).toFixed(2)}° from sun · hair across sun direction here glows <span class="sw" style="background:${css}"></span>`;
+  updateHud();
+}
+function updateHud() {
+  hud.innerHTML = `d = ${fmtD(state.d)} · sun ${state.elev}° high · exposure ${((state.auto ? curEV : -7) + state.ev).toFixed(1)} EV (vs sunlit white card)` + (hoverInfo ? '<br>' + hoverInfo : '');
+}
+
+// ---------------------------------------------------------------- loop
+let need = true, chartNeed = true;
+function schedule() { need = true; chartNeed = true; }
+const busy = document.getElementById('busy');
+function frame(ts) {
+  if (need || state.breeze) {
+    pendingBins = 0;
+    const t0 = performance.now();
+    render(ts / 1000);
+    if (chartNeed) { drawChart(); chartNeed = false; }
+    updateHud();
+    need = false;
+    busy.style.display = 'none';
+  }
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize', () => { schedule(); });
+setSun(state.elev);
+genHairs(); syncUI();
+busy.style.display = 'block';
+requestAnimationFrame(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>
