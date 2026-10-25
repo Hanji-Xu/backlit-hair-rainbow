@@ -1,5 +1,7 @@
 # 02 Backlit Hair Rainbow
 
+**▶ Play it:** https://hanji-xu.github.io/backlit-hair-rainbow/
+
 **Observation:** hold your forearm so it just hides the sun, and the fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse: it diffracts sunlight.
 
 **What it does:** drag on the picture to move the sun. Every glint is computed from diffraction around a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour with the CIE 1931 observer. Sliders cover hair type, diameter and its spread, ellipticity, melanin, length and count; sun position and height; arm angle; and display options (breeze, angle rings, faint arm, eye-like tone curve, exposure).
