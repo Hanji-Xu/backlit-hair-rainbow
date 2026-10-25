@@ -5,130 +5,88 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Backlit Hair Rainbow</title>
 <style>
-  :root {
-    --bg: #0d0f12; --panel: #15181d; --line: #262b33; --ink: #e8e6e1; --dim: #9aa0a8;
-    --accent: #f2c46d; --warn: #f08a5d; --ok: #8fd19e;
-  }
+  :root { --paper: #fafaf8; --ink: #111; --mute: #8a8a86; --rule: #e4e3df; --est: #a4472b; --meas: #3d6b45; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink);
-    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
-  header { padding: 22px 20px 6px; max-width: 1280px; margin: 0 auto; }
-  h1 { font-size: 24px; margin: 0 0 4px; font-weight: 650; letter-spacing: .2px; }
-  h1 span { color: var(--accent); }
-  header p { margin: 4px 0; color: var(--dim); max-width: 860px; }
-  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px;
-    max-width: 1280px; margin: 0 auto; padding: 10px 20px; }
-  .stage { align-self: start; position: relative; background: #000; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  #scene { display: block; width: 100%; aspect-ratio: 16 / 10; cursor: crosshair; touch-action: none; }
-  .hud { position: absolute; left: 10px; bottom: 8px; font: 12px/1.4 ui-monospace, Menlo, monospace;
-    color: #cfd3d8; background: rgba(0,0,0,.55); padding: 6px 8px; border-radius: 6px; pointer-events: none; }
-  .hud .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-left: 4px; border: 1px solid #444; }
-  .busy { position: absolute; right: 10px; top: 8px; font-size: 12px; color: var(--accent); background: rgba(0,0,0,.6);
-    padding: 4px 8px; border-radius: 6px; display: none; }
-  aside { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-self: start; }
-  aside h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin: 14px 0 6px; font-weight: 600; }
-  aside h3:first-child { margin-top: 2px; }
-  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
-  .presets button { background: #1f242b; color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
-    padding: 5px 8px; font-size: 12.5px; cursor: pointer; }
-  .presets button.on { border-color: var(--accent); color: var(--accent); }
-  .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; margin: 6px 0; font-size: 13px; }
-  .row label { color: #cdd1d6; }
-  .row output { font: 12px ui-monospace, Menlo, monospace; color: var(--accent); }
-  .row input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
-  .chk { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 4px 0; color: #cdd1d6; }
-  .chk small { color: var(--warn); }
-  .note { font-size: 12px; color: var(--dim); margin: 4px 0; }
-  section.chart, section.doc { max-width: 1280px; margin: 0 auto; padding: 6px 20px; }
-  .chartbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-  #chart { width: 100%; height: 230px; display: block; }
-  .doc { color: #d7d9dc; }
-  .doc h2 { font-size: 19px; margin: 26px 0 8px; color: var(--ink); }
-  .doc h3 { font-size: 15px; margin: 18px 0 6px; color: var(--accent); }
-  .doc p, .doc li { max-width: 900px; }
-  .eq { font: 14px/1.6 ui-monospace, Menlo, Consolas, monospace; background: #111418; border: 1px solid var(--line);
-    border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 6px; margin: 8px 0; overflow-x: auto; white-space: pre; max-width: 900px; }
-  table { border-collapse: collapse; font-size: 13px; max-width: 1000px; width: 100%; }
-  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
-  th { color: var(--dim); font-weight: 600; }
-  .tag { font-size: 11px; padding: 1px 6px; border-radius: 10px; white-space: nowrap; }
-  .tag.m { background: #1d3325; color: var(--ok); }
-  .tag.e { background: #3a2318; color: var(--warn); }
-  .tag.d { background: #222a3a; color: #9db8f0; }
-  footer { max-width: 1280px; margin: 20px auto 40px; padding: 0 20px; color: var(--dim); font-size: 12px; }
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; padding: 10px 12px; }
-    header, section.chart, section.doc, footer { padding-left: 12px; padding-right: 12px; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 14px/1.55 "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  nav.top { display: flex; justify-content: space-between; align-items: baseline; padding: 26px 0 22px; }
+  nav.top .brand { letter-spacing: .01em; }
+  nav.top .brand span { color: var(--mute); margin-left: 10px; }
+  #scene { display: block; width: 100%; aspect-ratio: 16 / 10; background: #000; touch-action: none; cursor: move; }
+  .caption { display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 18px 0 48px; align-items: start; }
+  .caption h1 { font-size: 14px; font-weight: 500; margin: 0; }
+  .caption p { margin: 2px 0 0; color: var(--mute); }
+  #hud .sw { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; margin-left: 4px; }
+  .tune { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .types { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 18px; }
+  .types button { background: none; border: 0; padding: 0; font: inherit; color: var(--mute); cursor: pointer; }
+  .types button:hover { color: var(--ink); }
+  .types button.on { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .slider { display: flex; align-items: center; gap: 12px; color: var(--mute); }
+  .slider input { width: 200px; accent-color: var(--ink); }
+  .slider output { color: var(--ink); min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+  article { max-width: 680px; padding-bottom: 64px; }
+  article h1 { font-size: 26px; font-weight: 400; margin: 10px 0 18px; letter-spacing: -.01em; }
+  article h2 { font-size: 14px; font-weight: 500; margin: 44px 0 10px; }
+  article h3 { font-size: 14px; font-weight: 400; color: var(--mute); margin: 22px 0 6px; }
+  article p, article li { margin: 0 0 12px; }
+  article ul { padding-left: 18px; }
+  .eq { font: 12.5px/1.65 ui-monospace, Menlo, Consolas, monospace; background: #f0efeb; padding: 12px 14px; margin: 8px 0 14px; overflow-x: auto; white-space: pre; }
+  table { border-collapse: collapse; font-size: 13px; width: 100%; }
+  th, td { border-top: 1px solid var(--rule); padding: 7px 8px 7px 0; text-align: left; vertical-align: top; }
+  th { color: var(--mute); font-weight: 400; }
+  .tag { font-size: 12px; white-space: nowrap; }
+  .tag.m { color: var(--meas); } .tag.e { color: var(--est); } .tag.d { color: var(--mute); }
+  .chart { margin: 26px 0 8px; }
+  #chart { width: 100%; height: 220px; display: block; }
+  .note { font-size: 12.5px; color: var(--mute); }
+  footer { color: var(--mute); font-size: 12px; padding: 24px 0 40px; border-top: 1px solid var(--rule); }
+  @media (max-width: 760px) {
+    .wrap { padding: 0 16px; }
+    .caption { grid-template-columns: 1fr; }
+    .tune, .types { align-items: flex-start; justify-content: flex-start; }
+    .slider input { width: 100%; flex: 1; }
+    .slider { width: 100%; }
   }
 </style>
 </head>
 <body>
-<header>
-  <h1>02 <span>Backlit Hair Rainbow</span></h1>
-  <p>Hold your forearm so it just hides the sun. The fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse. It <b>diffracts</b> sunlight, and the colours appear at angles set by the ratio of wavelength to hair thickness.</p>
-  <p>Drag on the picture to move the sun. Every glint you see is computed from the diffraction of a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour through the CIE 1931 observer.</p>
-</header>
-
-<main class="layout">
-  <section class="stage">
-    <canvas id="scene"></canvas>
-    <div class="hud" id="hud">…</div>
-    <div class="busy" id="busy">computing spectra…</div>
+<div class="wrap">
+  <section id="page-play">
+    <nav class="top"><a class="brand" href="#">Art Insights<span>02</span></a><a href="#physics">How it works</a></nav>
+    <canvas id="scene" aria-label="Forearm hiding the sun, with fine hairs glinting in diffraction colours"></canvas>
+    <div class="caption">
+      <div>
+        <h1>Backlit Hair Rainbow</h1>
+        <p>Drag the sun to move it. Drag anywhere else to turn the arm.</p>
+        <p id="hud"></p>
+      </div>
+      <div class="tune">
+        <div class="types" id="presets"></div>
+        <label class="slider" for="d">Diameter <input id="d" type="range" min="0" max="1000" step="1"><output id="d_o"></output></label>
+      </div>
+    </div>
   </section>
 
-  <aside>
-    <h3>Hair type</h3>
-    <div class="presets" id="presets"></div>
+  <section id="page-physics" hidden>
+    <nav class="top"><a class="brand" href="#">Art Insights<span>02</span></a><a href="#">Back to the piece</a></nav>
+    <article>
+      <h1>Why backlit hair turns into a rainbow</h1>
+      <p>Hold your forearm so it just hides the sun. The fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse. It <b>diffracts</b> sunlight, and the colours appear at angles set by the ratio of wavelength to hair thickness.</p>
+      <p>Every glint in the piece is computed from the diffraction of a cylinder, convolved with the real size of the sun's disk, weighted by the solar spectrum and converted to colour through the CIE 1931 observer. Nothing is painted.</p>
+      <div class="chart"><canvas id="chart"></canvas></div>
+      <p class="note" id="chartnote"></p>
 
-    <h3>Fiber</h3>
-    <div class="row"><label for="d">Hair diameter</label><output id="d_o"></output><input id="d" type="range" min="0" max="1000" step="1"></div>
-    <div class="row"><label for="cv">Diameter spread between hairs</label><output id="cv_o"></output><input id="cv" type="range" min="0" max="40" step="1"></div>
-    <div class="row"><label for="ecc">Cross-section ellipticity</label><output id="ecc_o"></output><input id="ecc" type="range" min="1" max="1.6" step="0.01"></div>
-    <div class="row"><label for="mel">Melanin (eumelanin)</label><output id="mel_o"></output><input id="mel" type="range" min="0" max="100" step="1"></div>
-    <div class="row"><label for="len">Hair length</label><output id="len_o"></output><input id="len" type="range" min="1" max="20" step="0.5"></div>
-    <div class="row"><label for="n">Number of hairs</label><output id="n_o"></output><input id="n" type="range" min="50" max="1500" step="10"></div>
-
-    <h3>Sun and view</h3>
-    <div class="row"><label for="sx">Sun, left/right of view centre</label><output id="sx_o"></output><input id="sx" type="range" min="-8" max="8" step="0.05"></div>
-    <div class="row"><label for="sy">Sun, up/down of view centre</label><output id="sy_o"></output><input id="sy" type="range" min="-5" max="5" step="0.05"></div>
-    <div class="row"><label for="elev">Sun height above horizon</label><output id="elev_o"></output><input id="elev" type="range" min="2" max="90" step="1"></div>
-    <div class="row"><label for="roll">Arm angle in view</label><output id="roll_o"></output><input id="roll" type="range" min="-45" max="45" step="1"></div>
-    <div class="row"><label for="yaw">Arm turned toward you</label><output id="yaw_o"></output><input id="yaw" type="range" min="-55" max="55" step="1"></div>
-    <div class="row"><label for="fov">Field of view</label><output id="fov_o"></output><input id="fov" type="range" min="4" max="30" step="0.5"></div>
-
-    <h3>What to include</h3>
-    <label class="chk"><input type="checkbox" id="m_diff" checked> Diffraction around the hair</label>
-    <label class="chk"><input type="checkbox" id="m_tt" checked> Light refracted through the hair</label>
-    <label class="chk"><input type="checkbox" id="m_cut"> Cuticle-scale grating <small>(strength estimated)</small></label>
-    <div class="row"><label for="per">Cuticle scale spacing</label><output id="per_o"></output><input id="per" type="range" min="3" max="12" step="0.1"></div>
-    <div class="row"><label for="eta">Grating efficiency per order</label><output id="eta_o"></output><input id="eta" type="range" min="0" max="0.4" step="0.01"></div>
-
-    <h3>Display</h3>
-    <label class="chk"><input type="checkbox" id="breeze" checked> Light breeze (hairs sway)</label>
-    <label class="chk"><input type="checkbox" id="rings" checked> Angle rings around the sun</label>
-    <label class="chk"><input type="checkbox" id="outline" checked> Show the arm faintly <small>(display aid)</small></label>
-    <label class="chk"><input type="checkbox" id="compress" checked> Eye-like tone curve <small>(display)</small></label>
-    <label class="chk"><input type="checkbox" id="auto" checked> Auto exposure</label>
-    <div class="row"><label for="ev">Exposure offset</label><output id="ev_o"></output><input id="ev" type="range" min="-6" max="6" step="0.25"></div>
-    <div class="row"><label for="bg">Background brightness</label><output id="bg_o"></output><input id="bg" type="range" min="0" max="100" step="1"></div>
-    <p class="note">The faint arm is a display aid: at an exposure that suits the glints, the shaded arm would really be black. The eye-like tone curve takes the square root of brightness so that dimmer, more colourful glints further from the sun stay visible next to the white ones near it, much as your eye does. Turn it off to see linear camera exposure. Exposure is a camera choice. Real glints are far brighter than the shaded background (tens to hundreds of times a sunlit white card, per arc-minute of hair), so at a correct exposure for the hairs the background is close to black.</p>
-  </aside>
-</main>
-
-<section class="chart">
-  <div class="chartbox">
-    <canvas id="chart"></canvas>
-    <p class="note" id="chartnote"></p>
-  </div>
-</section>
-
-<section class="doc">
-  <h2>What is actually happening</h2>
+      <h2>What is actually happening</h2>
   <p><b>1. Each hair diffracts.</b> A hair is an obstacle a few tens of micrometres wide. By Babinet's principle, the light it scatters into small forward angles is the same as the light that would pass through a slit of the same width. That pattern is a sinc² with dark fringes at <code>sin θ = mλ/d</code>. Blue light reaches its first dark fringe at a smaller angle than red light. So at a given angle from the sun, some wavelengths are dark and the rest are bright, and the hair shows the leftover colour.</p>
   <p><b>2. Only the parts of a hair lying across the sun's direction glow.</b> A long cylinder conserves the component of light's momentum along its axis. Scattered light therefore leaves on a cone around the hair (the same geometry that makes spider-web glints line up in rings). You see a point of hair light up only if the direction to your eye lies on that cone. Near the sun, that means the hair must lie roughly perpendicular to the line joining it to the sun. On a curved hair, this is true over a short stretch, so you see short sparks that slide along the hair as it moves.</p>
   <p><b>3. The sun's disk sets which hairs show colour.</b> The sun is 0.53° wide, not a point. Every point on the disk makes its own fringe pattern, offset by up to 0.53°, and they add up. Fringes narrower than the disk wash out. The fringe spacing is λ/d, so this happens when the hair is thicker than roughly λ/(0.53°) ≈ 60 µm. That is why the colours are vivid on fine body hair (vellus, roughly 10–30 µm) and weak on thick scalp hair (70–120 µm), whose colours are crowded within a degree or two of the sun.</p>
   <p><b>4. The light refracted through the hair is not the rainbow.</b> Light passing through the keratin (n ≈ 1.55) is bent into a broad forward lobe spanning 0–100°. It gives blond hair its golden rim glow. Keratin's dispersion is tiny, so this lobe is tinted by melanin absorption, not split into a spectrum.</p>
-  <p><b>5. The cuticle scales could act as a grating, but its strength is unknown.</b> Scale edges every 5–8 µm form a rough grating along the hair. That would throw spectra about λ/Λ ≈ 5° along the hair's cone. No measurement of its transmission efficiency exists, and the scales are irregular, so it is off by default and labelled as an estimate when on.</p>
+  <p><b>5. The cuticle scales could act as a grating, but its strength is unknown.</b> Scale edges every 5–8 µm form a rough grating along the hair. That would throw spectra about λ/Λ ≈ 5° along the hair's cone. No measurement of its transmission efficiency exists, and the scales are irregular, so the picture leaves it out. (The code keeps the model, switched off.)</p>
 
   <h2>Equations used</h2>
   <h3>Fiber diffraction (Fraunhofer, Babinet strip of width d)</h3>
@@ -176,7 +134,7 @@ linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevat
     <tr><td>Melanin absorption σ_a</td><td>C_eu·(0.419, 0.697, 1.37) + C_ph·(0.187, 0.4, 1.05)</td><td><span class="tag d">fitted model</span></td><td>pbrt-v3 hair (Chiang et al. 2016), per unit radius. Here it is scaled by radius/40 µm, which assumes the fit is for a typical 80 µm scalp hair <span class="tag e">estimate</span>.</td></tr>
     <tr><td>TT lobe shift and width</td><td>α_TT = 1.5°, β_TT = 3.5°</td><td><span class="tag m">measured range</span></td><td>Marschner et al. 2003, Table 1: α_R from −10° to −5°, cuticle tilt ≈ 3°, β_R 5–10°, β_TT = β_R/2.</td></tr>
     <tr><td>Cuticle scale spacing Λ</td><td>6 µm (default)</td><td><span class="tag e">estimate</span></td><td>Cuticle cells are ≈ 50 µm long and overlap by up to 5/6 (Wolfram 2003), which leaves ≈ 8 µm exposed. Spacing jitter is set to 20%.</td></tr>
-    <tr><td>Cuticle grating efficiency</td><td>0.15 per order</td><td><span class="tag e">unknown</span></td><td>Not measured for transmission. This is a free parameter for exploring the effect, so it is off by default.</td></tr>
+    <tr><td>Cuticle grating efficiency</td><td>0.15 per order</td><td><span class="tag e">unknown</span></td><td>Not measured for transmission, so the grating is left out of the picture.</td></tr>
     <tr><td>Hair length, density, curl</td><td>illustrative</td><td><span class="tag e">estimate</span></td><td>Chosen to look like a forearm. They change where glints fall, not the colour at a given angle.</td></tr>
   </table>
 
@@ -190,6 +148,10 @@ linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevat
     <li>The chord across the sun disk is separated into a radial and a transverse part. This is exact once a glint sweeps across the disk, and slightly approximate for a perfectly straight, still hair.</li>
   </ul>
 
+  <h2>About the picture</h2>
+  <p>Three display choices, none of them physics. The camera exposes automatically for the brightest glints, which are tens to hundreds of times brighter per arc-minute than a sunlit white card, so the shaded background would really be close to black. Brightness is shown through a square-root tone curve so the dimmer, more colourful glints further from the sun stay visible next to the white ones, roughly as your eye manages it. The arm is drawn faintly so you can see where it is; at this exposure it would be black.</p>
+  <p>Fixed in the picture: sun 35° above the horizon (air mass 1.74), diameter spread 20% between hairs, ellipticity, length and count per hair type. The sun's height only changes the colour of the light slightly through Rayleigh reddening.</p>
+
   <h2>Sources</h2>
   <ul>
     <li>Marschner, Jensen, Cammarano, Worley, Hanrahan. <i>Light Scattering from Human Hair Fibers.</i> SIGGRAPH 2003.</li>
@@ -202,8 +164,10 @@ linear sRGB = M_XYZ→sRGB · XYZ, divided by the sRGB of the sun at 60° elevat
     <li>Wolfram. <i>Human hair: a unique physicochemical composite.</i> J Am Acad Dermatol 2003 (cuticle cell size).</li>
     <li>Lynch &amp; Livingston. <i>Color and Light in Nature</i> (diffraction colours of threads and webs).</li>
   </ul>
-</section>
-<footer>Art Insights · 02 · Single self-contained file, no network access. All colours are computed, not painted.</footer>
+    </article>
+    <footer>Art Insights · 02 · Hanji Xu. Single self-contained file, no network access.</footer>
+  </section>
+</div>
 
 <script>
 'use strict';
@@ -712,7 +676,7 @@ function drawChart() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const w = Math.round(ch.clientWidth * dpr), h = Math.round(ch.clientHeight * dpr);
   if (ch.width !== w || ch.height !== h) { ch.width = w; ch.height = h; }
-  cctx.fillStyle = '#15181d'; cctx.fillRect(0, 0, w, h);
+  cctx.fillStyle = '#fafaf8'; cctx.fillRect(0, 0, w, h);
   const L = 70 * dpr, Rm = 14 * dpr, top = 8 * dpr;
   const pw = w - L - Rm, sh = 26 * dpr, gap = 6 * dpr;
   const plotTop = top + 2 * sh + 2 * gap + 8 * dpr, plotH = h - plotTop - 26 * dpr;
@@ -742,15 +706,15 @@ function drawChart() {
   const tc = tmpc.getContext('2d');
   tc.putImageData(id1, 0, 0); cctx.imageSmoothingEnabled = false; cctx.drawImage(tmpc, L, top, pw, sh);
   tc.putImageData(id2, 0, 0); cctx.drawImage(tmpc, L, top + sh + gap, pw, sh);
-  cctx.fillStyle = '#9aa0a8'; cctx.font = `${11 * dpr}px -apple-system, Helvetica, sans-serif`; cctx.textAlign = 'right';
+  cctx.fillStyle = '#8a8a86'; cctx.font = `${11 * dpr}px "Helvetica Neue", Helvetica, Arial, sans-serif`; cctx.textAlign = 'right';
   cctx.fillText('as bright', L - 6 * dpr, top + sh * 0.65);
   cctx.fillText('hue only', L - 6 * dpr, top + sh + gap + sh * 0.65);
   // log brightness curve
-  cctx.strokeStyle = '#262b33'; cctx.lineWidth = 1;
+  cctx.strokeStyle = '#e4e3df'; cctx.lineWidth = 1;
   for (let dec = 0; dec <= 3; dec++) { const y = plotTop + dec / 3 * plotH; cctx.beginPath(); cctx.moveTo(L, y); cctx.lineTo(L + pw, y); cctx.stroke(); cctx.fillText(dec === 0 ? '1' : '10⁻' + dec, L - 6 * dpr, y + 4 * dpr); }
   // sun disk region
   const xs = R_SUN / thMax * pw;
-  cctx.fillStyle = 'rgba(242,196,109,0.12)'; cctx.fillRect(L, top, xs, plotTop + plotH - top);
+  cctx.fillStyle = 'rgba(200,150,40,0.14)'; cctx.fillRect(L, top, xs, plotTop + plotH - top);
   // minima of 1st order for blue/green/red
   const marks = [[450, '#6d8cff'], [550, '#6fdc6f'], [650, '#ff6b5b']];
   for (const [lm, col] of marks) {
@@ -759,7 +723,7 @@ function drawChart() {
     const x = L + th1 / thMax * pw;
     cctx.strokeStyle = col; cctx.setLineDash([3 * dpr, 3 * dpr]); cctx.beginPath(); cctx.moveTo(x, plotTop); cctx.lineTo(x, plotTop + plotH); cctx.stroke(); cctx.setLineDash([]);
   }
-  cctx.strokeStyle = '#e8e6e1'; cctx.lineWidth = 1.5 * dpr; cctx.beginPath();
+  cctx.strokeStyle = '#111'; cctx.lineWidth = 1.5 * dpr; cctx.beginPath();
   for (let i = 0; i < pw; i++) {
     const v = Math.max(-3, Math.log10(Math.max(1e-9, cols[i][1] / Ymax)));
     const y = plotTop + (-v) / 3 * plotH;
@@ -767,14 +731,14 @@ function drawChart() {
   }
   cctx.stroke();
   // x axis
-  cctx.textAlign = 'center'; cctx.fillStyle = '#9aa0a8';
+  cctx.textAlign = 'center'; cctx.fillStyle = '#8a8a86';
   const step = thMax / DEG > 12 ? 2 : thMax / DEG > 5 ? 1 : thMax / DEG > 2.4 ? 0.5 : 0.25;
   for (let a = 0; a <= thMax / DEG + 1e-6; a += step) { const x = L + a * DEG / thMax * pw; cctx.fillText(a + '°', x, plotTop + plotH + 16 * dpr); }
   cctx.textAlign = 'left';
   cctx.textAlign = 'right'; cctx.fillText('angle from the sun →', L + pw, plotTop - 4 * dpr);
   const coh = 0.55e-6 / (2 * R_SUN) * 1e6;
   document.getElementById('chartnote').innerHTML =
-    `Colour of a hair lying across the sun's direction, at each angle from the sun, for d = ${fmtD(state.d)}. ` +
+    `Colour of a hair lying across the sun's direction, at each angle from the sun, for d = ${fmtD(state.d)} (the diameter set in the piece). ` +
     `Dashed lines: first dark fringe for blue (450 nm), green (550 nm) and red (650 nm). The shaded strip is the sun's disk. ` +
     `Lower curve: brightness on a log scale (it falls roughly as 1/θ²). The sun's spatial coherence width is λ/(2R) ≈ ${coh.toFixed(0)} µm. ` +
     (state.d > coh ? `This hair is thicker than that, so its fringes are mostly washed out.` : `This hair is thinner than that, so its fringes survive and the colours are vivid.`);
@@ -787,66 +751,59 @@ function fixGamut(c) {
 
 // ---------------------------------------------------------------- UI
 function fmtD(v) { return v < 10 ? v.toFixed(1) + ' µm' : Math.round(v) + ' µm'; }
-const controls = {
-  d: { fmt: fmtD, map: dSlider, regen: false },
-  cv: { fmt: v => v + '%' }, ecc: { fmt: v => v.toFixed(2) },
-  mel: { key: 'eu', fmt: v => v.toFixed(2), map: melSlider, tt: true },
-  len: { fmt: v => v + ' mm' }, n: { fmt: v => v, regen: true },
-  sx: { fmt: v => v.toFixed(2) + '°' }, sy: { fmt: v => v.toFixed(2) + '°' },
-  elev: { fmt: v => v + '° (air mass ' + airMass(v).toFixed(2) + ')', sun: true },
-  roll: { fmt: v => v + '°' }, yaw: { fmt: v => v + '°' }, fov: { fmt: v => v + '°' },
-  per: { fmt: v => v.toFixed(1) + ' µm' }, eta: { fmt: v => v.toFixed(2) },
-  ev: { fmt: v => (v > 0 ? '+' : '') + v + ' EV' }, bg: { fmt: v => (v * 100).toFixed(1) + '% of white card', map: bgSlider },
-};
+const dEl = document.getElementById('d'), dOut = document.getElementById('d_o');
 function syncUI() {
-  for (const id in controls) {
-    const c = controls[id], key = c.key || id, el = document.getElementById(id);
-    el.value = c.map ? c.map.toPos(state[key]) : state[key];
-    document.getElementById(id + '_o').textContent = c.fmt(state[key]);
-  }
-  for (const id of ['diff', 'tt', 'cut']) document.getElementById('m_' + id).checked = state[id];
-  for (const id of ['breeze', 'rings', 'outline', 'compress', 'auto']) document.getElementById(id).checked = state[id];
+  dEl.value = dSlider.toPos(state.d); dOut.textContent = fmtD(state.d);
   document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.id === state.preset));
 }
-for (const id in controls) {
-  const c = controls[id], key = c.key || id, el = document.getElementById(id);
-  el.addEventListener('input', () => {
-    const v = parseFloat(el.value);
-    state[key] = c.map ? c.map.toVal(v) : v;
-    document.getElementById(id + '_o').textContent = c.fmt(state[key]);
-    if (['d', 'cv', 'mel', 'len', 'n', 'ecc'].includes(id)) { state.preset = null; document.querySelectorAll('#presets button').forEach(b => b.classList.remove('on')); }
-    if (c.regen) genHairs();
-    if (c.tt) ttCache = null;
-    if (c.sun) setSun(state.elev);
-    schedule();
-  });
-}
-for (const id of ['diff', 'tt', 'cut']) document.getElementById('m_' + id).addEventListener('change', e => { state[id] = e.target.checked; schedule(); });
-for (const id of ['breeze', 'rings', 'outline', 'compress', 'auto']) document.getElementById(id).addEventListener('change', e => { state[id] = e.target.checked; schedule(); });
+dEl.addEventListener('input', () => {
+  state.d = dSlider.toVal(parseFloat(dEl.value)); dOut.textContent = fmtD(state.d);
+  state.preset = null; document.querySelectorAll('#presets button').forEach(b => b.classList.remove('on'));
+  schedule();
+});
 const pdiv = document.getElementById('presets');
 for (const p of PRESETS) {
   const b = document.createElement('button'); b.textContent = p.name; b.dataset.id = p.id;
   b.addEventListener('click', () => {
-    Object.assign(state, { d: p.d, cv: p.cv, len: p.len, eu: p.eu, ecc: p.ecc, n: p.n, fov: p.fov || 7, sy: p.sy !== undefined ? p.sy : -0.9, preset: p.id });
+    Object.assign(state, { d: p.d, cv: p.cv, len: p.len, eu: p.eu, ecc: p.ecc, n: p.n, fov: p.fov || 7, sy: p.sy !== undefined ? p.sy : -0.9, sx: 0.4, preset: p.id });
     ttCache = null; genHairs(); syncUI(); schedule();
   });
   pdiv.appendChild(b);
 }
-// drag the sun
-let dragging = false;
-function evToDir(ev) {
+// dragging: grab the sun to move it, drag anywhere else to turn the arm
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let drag = null;
+function evPx(ev) {
   const rect = cv.getBoundingClientRect();
-  const x = (ev.clientX - rect.left) / rect.width * W, y = (ev.clientY - rect.top) / rect.height * H;
-  return norm([(x - W / 2) / F, -(y - H / 2) / F, 1]);
+  return { x: (ev.clientX - rect.left) / rect.width * W, y: (ev.clientY - rect.top) / rect.height * H };
 }
-cv.addEventListener('pointerdown', e => { dragging = true; cv.setPointerCapture(e.pointerId); moveSun(e); });
-cv.addEventListener('pointerup', () => dragging = false);
-cv.addEventListener('pointermove', e => { if (dragging) moveSun(e); hover(e); });
+function evToDir(ev) { const q = evPx(ev); return norm([(q.x - W / 2) / F, -(q.y - H / 2) / F, 1]); }
+function nearSun(ev) {
+  const q = evPx(ev), s = sunDir();
+  const sxp = W / 2 + F * s[0] / s[2], syp = H / 2 - F * s[1] / s[2];
+  return Math.hypot(q.x - sxp, q.y - syp) < Math.max(30 * W / cv.clientWidth, 3 * F * Math.tan(R_SUN));
+}
+cv.addEventListener('pointerdown', e => {
+  cv.setPointerCapture(e.pointerId);
+  if (nearSun(e)) { drag = { mode: 'sun' }; moveSun(e); }
+  else drag = { mode: 'arm', x: e.clientX, y: e.clientY, roll: state.roll, yaw: state.yaw };
+});
+cv.addEventListener('pointerup', () => { drag = null; });
+cv.addEventListener('pointercancel', () => { drag = null; });
+cv.addEventListener('pointermove', e => {
+  if (drag && drag.mode === 'sun') moveSun(e);
+  else if (drag) {
+    state.roll = clamp(drag.roll - (e.clientX - drag.x) / cv.clientWidth * 90, -45, 45);
+    state.yaw = clamp(drag.yaw + (e.clientY - drag.y) / cv.clientHeight * 110, -55, 55);
+    schedule();
+  } else cv.style.cursor = nearSun(e) ? 'grab' : 'move';
+  hover(e);
+});
 function moveSun(e) {
-  const d = evToDir(e);
-  state.sx = Math.max(-8, Math.min(8, Math.atan(d[0] / d[2]) / DEG));
-  state.sy = Math.max(-5, Math.min(5, Math.atan(d[1] / d[2]) / DEG));
-  syncUI(); schedule();
+  const d = evToDir(e), hx = state.fov / 2, hy = Math.atan(Math.tan(hx * DEG) * H / W) / DEG;
+  state.sx = clamp(Math.atan(d[0] / d[2]) / DEG, -hx, hx);
+  state.sy = clamp(Math.atan(d[1] / d[2]) / DEG, -hy, hy);
+  schedule();
 }
 const hud = document.getElementById('hud');
 let hoverInfo = '';
@@ -857,33 +814,30 @@ function hover(e) {
   let c = fixGamut(adaptRGB(tmp3[0] / tmp3[1], 1, tmp3[2] / tmp3[1]));
   const k = Math.min(0.45 / (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]), 1 / Math.max(...c));
   const css = `rgb(${enc(c[0] * k)},${enc(c[1] * k)},${enc(c[2] * k)})`;
-  hoverInfo = `cursor: ${(th / DEG).toFixed(2)}° from sun · hair across sun direction here glows <span class="sw" style="background:${css}"></span>`;
+  hoverInfo = `${(th / DEG).toFixed(2)}° from the sun: a hair lying across the sun here glows <span class="sw" style="background:${css}"></span>`;
   updateHud();
 }
-function updateHud() {
-  hud.innerHTML = `d = ${fmtD(state.d)} · sun ${state.elev}° high · exposure ${((state.auto ? curEV : -7) + state.ev).toFixed(1)} EV (vs sunlit white card)` + (hoverInfo ? '<br>' + hoverInfo : '');
-}
+cv.addEventListener('pointerleave', () => { hoverInfo = ''; updateHud(); });
+function updateHud() { hud.innerHTML = hoverInfo || '&nbsp;'; }
 
 // ---------------------------------------------------------------- loop
-let need = true, chartNeed = true;
+let need = true, chartNeed = true, page = 'play';
 function schedule() { need = true; chartNeed = true; }
-const busy = document.getElementById('busy');
+function route() {
+  page = location.hash === '#physics' ? 'physics' : 'play';
+  document.getElementById('page-play').hidden = page !== 'play';
+  document.getElementById('page-physics').hidden = page !== 'physics';
+  window.scrollTo(0, 0); schedule();
+}
 function frame(ts) {
-  if (need || state.breeze) {
-    pendingBins = 0;
-    const t0 = performance.now();
-    render(ts / 1000);
-    if (chartNeed) { drawChart(); chartNeed = false; }
-    updateHud();
-    need = false;
-    busy.style.display = 'none';
-  }
+  if (page === 'play' && (need || state.breeze)) { render(ts / 1000); need = false; }
+  if (page === 'physics' && chartNeed) { drawChart(); chartNeed = false; }
   requestAnimationFrame(frame);
 }
-window.addEventListener('resize', () => { schedule(); });
+window.addEventListener('resize', schedule);
+window.addEventListener('hashchange', route);
 setSun(state.elev);
-genHairs(); syncUI();
-busy.style.display = 'block';
+genHairs(); syncUI(); updateHud(); route();
 requestAnimationFrame(() => requestAnimationFrame(frame));
 </script>
 </body>
