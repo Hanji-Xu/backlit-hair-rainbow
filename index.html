@@ -57,7 +57,7 @@
 <body>
 <div class="wrap">
   <section id="page-play">
-    <nav class="top"><a class="brand" href="#">Art Insights<span>02</span></a><a href="#physics">How it works</a></nav>
+    <nav class="top"><a class="brand" href="#" data-page="play">Art Insights<span>02</span></a><a href="#physics" data-page="physics">How it works</a></nav>
     <canvas id="scene" aria-label="Forearm hiding the sun, with fine hairs glinting in diffraction colours"></canvas>
     <div class="caption">
       <div>
@@ -73,7 +73,7 @@
   </section>
 
   <section id="page-physics" hidden>
-    <nav class="top"><a class="brand" href="#">Art Insights<span>02</span></a><a href="#">Back to the piece</a></nav>
+    <nav class="top"><a class="brand" href="#" data-page="play">Art Insights<span>02</span></a><a href="#" data-page="play">Back to the piece</a></nav>
     <article>
       <h1>Why backlit hair turns into a rainbow</h1>
       <p>Hold your forearm so it just hides the sun. The fine hairs along its edge light up in short sparks of colour: violet, gold, green, pink. They are not reflecting and not acting as prisms. Each hair is a slit in reverse. It <b>diffracts</b> sunlight, and the colours appear at angles set by the ratio of wavelength to hair thickness.</p>
@@ -823,12 +823,22 @@ function updateHud() { hud.innerHTML = hoverInfo || '&nbsp;'; }
 // ---------------------------------------------------------------- loop
 let need = true, chartNeed = true, page = 'play';
 function schedule() { need = true; chartNeed = true; }
-function route() {
-  page = location.hash === '#physics' ? 'physics' : 'play';
+// Page switching is done in script, not by following the link, so it also works
+// where hash navigation is blocked (sandboxed previews, embedded viewers).
+function showPage(name) {
+  page = name;
   document.getElementById('page-play').hidden = page !== 'play';
   document.getElementById('page-physics').hidden = page !== 'physics';
   window.scrollTo(0, 0); schedule();
 }
+function route() { showPage(location.hash === '#physics' ? 'physics' : 'play'); }
+document.querySelectorAll('a[data-page]').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  const name = a.dataset.page;
+  try { history.pushState(null, '', name === 'physics' ? '#physics' : location.pathname + location.search); } catch (err) { /* no history in this viewer */ }
+  showPage(name);
+}));
+window.addEventListener('popstate', route);
 function frame(ts) {
   if (page === 'play' && (need || state.breeze)) { render(ts / 1000); need = false; }
   if (page === 'physics' && chartNeed) { drawChart(); chartNeed = false; }
