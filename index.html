@@ -53,6 +53,9 @@
     .slider { width: 100%; }
   }
 </style>
+<!-- GoatCounter: privacy-friendly visitor count, no cookies -->
+<script data-goatcounter="https://hanjixu.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -907,7 +910,12 @@ let need = true, chartNeed = true, page = 'play';
 function schedule() { need = true; chartNeed = true; }
 // Page switching is done in script, not by following the link, so it also works
 // where hash navigation is blocked (sandboxed previews, embedded viewers).
+// count the second view as its own path in GoatCounter (skipped if blocked or not loaded yet)
+function countView(slug, title) {
+  try { if (window.goatcounter && goatcounter.count) goatcounter.count({ path: location.pathname.replace(/index\.html$/, '').replace(/\/?$/, '/') + slug, title: title }); } catch (e) {}
+}
 function showPage(name) {
+  if (name === 'physics' && page !== 'physics') countView('how-it-works', 'How it works');
   page = name;
   document.getElementById('page-play').hidden = page !== 'play';
   document.getElementById('page-physics').hidden = page !== 'physics';
